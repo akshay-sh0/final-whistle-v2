@@ -3,7 +3,9 @@ name = "final-whistle"
 version = "0.1.0"
 description = "Football analytics learning project"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "requests>=2.32.0",
+]
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
