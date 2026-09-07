@@ -22,3 +22,16 @@ class FootballDataClient:
         response.raise_for_status()
 
         return response.json()
+
+    def get_standings(self, competition_code: str) -> dict [str, Any]:
+        url = f"{BASE_URL}/competitions/{competition_code}/standings"
+
+        response = requests.get(
+            url,
+            headers=self._headers(),
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
+        return response.json()
