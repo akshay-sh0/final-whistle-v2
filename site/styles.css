@@ -1,0 +1,301 @@
+:root {
+  --page-background: #f5f7fb;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --text: #172033;
+  --muted-text: #667085;
+  --border: #e4e7ec;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --points: #a16207;
+  --shadow: 0 20px 45px rgba(23, 32, 51, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--page-background);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.app-shell {
+  width: min(100% - 32px, 1120px);
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+}
+
+.header-label,
+.section-label,
+.eyebrow {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header-label {
+  display: none;
+}
+
+.hero {
+  max-width: 680px;
+  padding: 24px 0 20px;
+}
+
+.eyebrow {
+  color: var(--primary);
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.05em;
+}
+
+h1 {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin-top: 5px;
+  font-size: 1.7rem;
+}
+
+.hero-copy {
+  margin: 6px 0 0;
+  color: var(--muted-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.standings-card {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.card-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 28px 22px;
+}
+
+.competition-picker select {
+  min-width: 178px;
+  padding: 11px 40px 11px 14px;
+  appearance: none;
+  background-color: var(--surface-muted);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-text) 50%),
+    linear-gradient(135deg, var(--muted-text) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 52%,
+    calc(100% - 13px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.competition-picker select:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+.status-message {
+  min-height: 24px;
+  margin: 0;
+  padding: 0 28px 18px;
+  color: var(--muted-text);
+  font-size: 0.88rem;
+}
+
+.status-message.error {
+  color: #b42318;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+th {
+  background: var(--surface-muted);
+  color: var(--muted-text);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+th:first-child,
+td:first-child {
+  width: 54px;
+  color: var(--muted-text);
+  text-align: left;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+  min-width: 210px;
+  text-align: left;
+}
+
+tbody tr {
+  transition: background-color 180ms ease;
+}
+
+tbody tr:hover {
+  background: #f8fbff;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.club-name {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.points-cell {
+  color: var(--points);
+  font-weight: 800;
+}
+
+.site-footer {
+  padding: 26px 4px 0;
+  color: var(--muted-text);
+  font-size: 0.8rem;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer a {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 700px) {
+  .app-shell {
+    width: min(100% - 64px, 1120px);
+    padding-top: 40px;
+  }
+
+  .header-label {
+    display: inline;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    width: min(100% - 24px, 1120px);
+    padding-top: 20px;
+  }
+
+  .hero {
+    padding: 32px 0 26px;
+  }
+
+  .card-heading {
+    align-items: start;
+    flex-direction: column;
+    padding: 22px 20px 18px;
+  }
+
+  .competition-picker,
+  .competition-picker select {
+    width: 100%;
+  }
+
+  .status-message {
+    padding: 0 20px 16px;
+  }
+
+  th,
+  td {
+    padding: 14px 16px;
+  }
+}

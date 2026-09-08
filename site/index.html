@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <meta
+    name="description"
+    content="Latest published Premier League and La Liga standings."
+  >
+  <title>Final Whistle | Football Tables</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <main class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Final Whistle home">
+        <img class="brand-mark" src="favicon.svg" alt="">
+        <span>Final Whistle</span>
+      </a>
+
+      <span class="header-label">Football data dashboard</span>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">LEAGUE TABLES</p>
+      <h1 id="page-title">The game, in numbers.</h1>
+      <p class="hero-copy">
+        Latest published standings for the Premier League and La Liga.
+      </p>
+    </section>
+
+    <section class="standings-card" aria-labelledby="standings-title">
+      <div class="card-heading">
+        <div>
+          <p class="section-label">COMPETITION</p>
+          <h2 id="standings-title">Standings</h2>
+        </div>
+
+        <label class="competition-picker" for="competition-select">
+          <span class="visually-hidden">Choose a competition</span>
+          <select id="competition-select">
+            <option value="PL">Premier League</option>
+            <option value="PD">La Liga</option>
+          </select>
+        </label>
+      </div>
+
+      <p id="status-message" class="status-message" role="status">
+        Loading standings...
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Club</th>
+              <th scope="col">P</th>
+              <th scope="col">W</th>
+              <th scope="col">D</th>
+              <th scope="col">L</th>
+              <th scope="col">GD</th>
+              <th scope="col">Pts</th>
+            </tr>
+          </thead>
+
+          <tbody id="standings-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>
+        Football data provided by
+        <a href="https://www.football-data.org/" target="_blank" rel="noreferrer">
+          football-data.org
+        </a>.
+      </p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient
+      id="pitch"
+      x1="18"
+      y1="14"
+      x2="112"
+      y2="116"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#0f5132"/>
+      <stop offset="1" stop-color="#063d27"/>
+    </linearGradient>
+
+    <radialGradient id="pitch-light" cx="50%" cy="47%" r="60%">
+      <stop stop-color="#61c889" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#61c889" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="fw-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="blur"/>
+      <feFlood
+        flood-color="#96efb7"
+        flood-opacity="0.3"
+        result="glow-color"
+      />
+      <feComposite
+        in="glow-color"
+        in2="blur"
+        operator="in"
+        result="glow"
+      />
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="29" fill="url(#pitch)"/>
+
+  <rect
+    x="8.75"
+    y="8.75"
+    width="110.5"
+    height="110.5"
+    rx="28.25"
+    fill="none"
+    stroke="#9ae6b4"
+    stroke-opacity="0.17"
+    stroke-width="1.5"
+  />
+
+  <rect
+    x="23"
+    y="19"
+    width="82"
+    height="90"
+    rx="7"
+    fill="url(#pitch-light)"
+    stroke="#c7f9d8"
+    stroke-opacity="0.36"
+    stroke-width="1.8"
+  />
+
+  <path
+    d="M23 43h14v42H23M105 43H91v42h14"
+    fill="none"
+    stroke="#c7f9d8"
+    stroke-opacity="0.3"
+    stroke-width="1.8"
+  />
+
+  <path
+    d="M64 19v90"
+    stroke="#c7f9d8"
+    stroke-opacity="0.28"
+    stroke-width="1.8"
+  />
+
+  <circle
+    cx="64"
+    cy="64"
+    r="14"
+    fill="none"
+    stroke="#c7f9d8"
+    stroke-opacity="0.22"
+    stroke-width="1.8"
+  />
+
+  <path
+    d="M29 42h24v8H39v8h12v8H39v20H29ZM57 42h8l5 26 5-18h7l5 18 5-26h8l-7 44h-8l-6.5-19-6.5 19h-8Z"
+    fill="#f8fff9"
+    filter="url(#fw-glow)"
+  />
+</svg>
