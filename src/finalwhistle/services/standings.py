@@ -18,3 +18,13 @@ def normalise_table_row(entry: dict[str, Any]) -> StandingRow:
         goals_against=entry["goalsAgainst"],
         goal_difference=entry["goalDifference"],
     )
+
+def normalise_standings(payload: dict[str, Any]) -> list[StandingRow]:
+    for standings_group in payload["standings"]:
+        if standings_group["type"] == "TOTAL":
+            return [
+                normalise_table_row(entry)
+                for entry in standings_group["table"]
+            ]
+
+    raise ValueError("No TOTAL standings table found.")
