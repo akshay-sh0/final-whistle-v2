@@ -1,87 +1,240 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2563eb">
-  <meta
-    name="description"
-    content="Latest published Premier League and La Liga standings."
-  >
-  <title>Final Whistle | Football Tables</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Historical football results and current league tables."
+    />
+    <title>Final Whistle</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
 
-<body>
-  <main class="app-shell">
-    <header class="site-header">
-      <a class="brand" href="/" aria-label="Final Whistle home">
-        <img class="brand-mark" src="favicon.svg" alt="">
-        <span>Final Whistle</span>
-      </a>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="#on-this-day" aria-label="Final Whistle home">
+          <img class="brand-mark" src="favicon.svg" alt="" />
+          <span>
+            <span class="brand-name">Final Whistle</span>
+            <span class="brand-tagline">THE GAME, IN NUMBERS.</span>
+          </span>
+        </a>
+      </header>
 
-      <span class="header-label">Football data dashboard</span>
-    </header>
+      <nav class="mobile-navigation" aria-label="Website sections">
+        <button class="navigation-button is-active" data-view="on-this-day">
+          On This Day
+        </button>
+        <button class="navigation-button" data-view="current-table">
+          Current Table
+        </button>
+        <button class="navigation-button" data-view="head-to-head">
+          Head to Head
+        </button>
+        <button class="navigation-button" data-view="clubs">Clubs</button>
+      </nav>
 
-    <section class="hero" aria-labelledby="page-title">
-      <p class="eyebrow">LEAGUE TABLES</p>
-      <h1 id="page-title">The game, in numbers.</h1>
-      <p class="hero-copy">
-        Latest published standings for the Premier League and La Liga.
-      </p>
-    </section>
+      <div class="workspace">
+        <nav class="side-navigation" aria-label="Website sections">
+          <button class="navigation-button is-active" data-view="on-this-day">
+            On This Day
+          </button>
+          <button class="navigation-button" data-view="current-table">
+            Current Table
+          </button>
+          <button class="navigation-button" data-view="head-to-head">
+            Head to Head
+          </button>
+          <button class="navigation-button" data-view="clubs">Clubs</button>
+        </nav>
 
-    <section class="standings-card" aria-labelledby="standings-title">
-      <div class="card-heading">
-        <div>
-          <p class="section-label">COMPETITION</p>
-          <h2 id="standings-title">Standings</h2>
-        </div>
+        <main>
+          <section
+            id="on-this-day"
+            class="view-panel is-active"
+            data-panel="on-this-day"
+          >
+            <p class="eyebrow">MATCH ARCHIVE</p>
+            <h1>On This Day</h1>
+            <p class="intro">
+              Historical Premier League and La Liga results for a selected date.
+            </p>
 
-        <label class="competition-picker" for="competition-select">
-          <span class="visually-hidden">Choose a competition</span>
-          <select id="competition-select">
-            <option value="PL">Premier League</option>
-            <option value="PD">La Liga</option>
-          </select>
-        </label>
+            <div class="filter-row three-columns">
+              <label>
+                <span class="field-label">COMPETITION</span>
+                <select id="history-competition">
+                  <option value="PL">Premier League</option>
+                  <option value="PD">La Liga</option>
+                </select>
+              </label>
+
+              <label>
+                <span class="field-label">MONTH</span>
+                <select id="history-month"></select>
+              </label>
+
+              <label>
+                <span class="field-label">DAY</span>
+                <select id="history-day"></select>
+              </label>
+            </div>
+
+            <div id="on-this-day-results" class="results-area" aria-live="polite">
+              Loading historical matches...
+            </div>
+          </section>
+
+          <section
+            id="current-table"
+            class="view-panel"
+            data-panel="current-table"
+            hidden
+          >
+            <p class="eyebrow">LEAGUE STANDINGS</p>
+            <h1>Current Table</h1>
+            <p class="intro">
+              Latest published standings from the Final Whistle data pipeline.
+            </p>
+
+            <div class="filter-row one-column">
+              <label>
+                <span class="field-label">COMPETITION</span>
+                <select id="standings-competition">
+                  <option value="PL">Premier League</option>
+                  <option value="PD">La Liga</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Pos</th>
+                    <th>Club</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>D</th>
+                    <th>L</th>
+                    <th>GD</th>
+                    <th>Pts</th>
+                  </tr>
+                </thead>
+                <tbody id="standings-body">
+                  <tr>
+                    <td colspan="8">Loading current table...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section
+            id="head-to-head"
+            class="view-panel"
+            data-panel="head-to-head"
+            hidden
+          >
+            <p class="eyebrow">CLUB COMPARISON</p>
+            <h1>Head to Head</h1>
+            <p class="intro">
+              Compare historical results between two clubs.
+            </p>
+
+            <div class="filter-row three-columns">
+              <label>
+                <span class="field-label">COMPETITION</span>
+                <select id="head-to-head-competition">
+                  <option value="PL">Premier League</option>
+                  <option value="PD">La Liga</option>
+                </select>
+              </label>
+
+              <label>
+                <span class="field-label">FIRST CLUB</span>
+                <select id="first-club"></select>
+              </label>
+
+              <label>
+                <span class="field-label">SECOND CLUB</span>
+                <select id="second-club"></select>
+              </label>
+            </div>
+
+            <div
+              id="head-to-head-summary"
+              class="metrics-row"
+              aria-live="polite"
+            ></div>
+
+            <div id="head-to-head-results" class="results-area"></div>
+          </section>
+
+          <section id="clubs" class="view-panel" data-panel="clubs" hidden>
+            <p class="eyebrow">CLUB RECORD</p>
+            <h1>Clubs</h1>
+            <p class="intro">
+              Explore historical results for a single club.
+            </p>
+
+            <div class="filter-row two-columns">
+              <label>
+                <span class="field-label">COMPETITION</span>
+                <select id="club-competition">
+                  <option value="PL">Premier League</option>
+                  <option value="PD">La Liga</option>
+                </select>
+              </label>
+
+              <label>
+                <span class="field-label">CLUB</span>
+                <select id="club-select"></select>
+              </label>
+            </div>
+
+            <div id="club-summary" class="metrics-row" aria-live="polite"></div>
+            <div id="club-records" class="records-area"></div>
+          </section>
+        </main>
       </div>
 
-      <p id="status-message" class="status-message" role="status">
-        Loading standings...
-      </p>
+      <footer>
+        <span>
+          Historical match data:
+          <a
+            href="https://github.com/openfootball/football.json"
+            target="_blank"
+            rel="noreferrer"
+          >
+            OpenFootball
+          </a>
+        </span>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Club</th>
-              <th scope="col">P</th>
-              <th scope="col">W</th>
-              <th scope="col">D</th>
-              <th scope="col">L</th>
-              <th scope="col">GD</th>
-              <th scope="col">Pts</th>
-            </tr>
-          </thead>
+        <span>
+          Current standings:
+          <a
+            href="https://www.football-data.org/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            football-data.org
+          </a>
+        </span>
 
-          <tbody id="standings-body"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <footer class="site-footer">
-      <p>
-        Football data provided by
-        <a href="https://www.football-data.org/" target="_blank" rel="noreferrer">
-          football-data.org
-        </a>.
-      </p>
-    </footer>
-  </main>
-
-  <script src="app.js"></script>
-</body>
+        <a
+          class="project-link"
+          href="https://github.com/akshay-sh0/final-whistle-v2"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View project on GitHub
+        </a>
+      </footer>
+    </div>
+  </body>
 </html>
