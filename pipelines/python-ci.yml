@@ -1,3 +1,4 @@
+# Runs Python tests for application and pipeline changes.
 trigger:
   branches:
     include:
