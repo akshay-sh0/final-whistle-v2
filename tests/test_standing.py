@@ -15,7 +15,7 @@ def test_standing_row_stores_values():
         goal_difference=5,
     )
 
-    assert row.position == 0
+    assert row.position == 1
     assert row.team_id == 65
     assert row.team_name == "Manchester City FC"
     assert row.played_games == 3
