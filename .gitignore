@@ -7,3 +7,21 @@ __pycache__/
 htmlcov/
 *.egg-info/
 site/data/
+
+# Terraform local working directory
+**/.terraform/*
+
+# Terraform state and backups
+*.tfstate
+*.tfstate.*
+
+# Saved Terraform plans
+*.tfplan
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Local Terraform variable values
+*.tfvars
+*.tfvars.json
