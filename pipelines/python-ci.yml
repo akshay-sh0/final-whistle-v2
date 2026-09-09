@@ -1,0 +1,49 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/**
+      - tests/**
+      - scripts/**
+      - pyproject.toml
+      - pipelines/python-ci.yml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/**
+      - tests/**
+      - scripts/**
+      - pyproject.toml
+      - pipelines/python-ci.yml
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: UsePythonVersion@0
+    displayName: Use Python 3.12
+    inputs:
+      versionSpec: "3.12"
+
+  - script: python -m pip install --editable ".[dev]"
+    displayName: Install project and test dependencies
+
+  - script: |
+      mkdir -p test-results
+      python -m pytest --junitxml=test-results/pytest.xml
+    displayName: Run Python tests
+
+  - task: PublishTestResults@2
+    displayName: Publish Python test results
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: "test-results/pytest.xml"
+      failTaskOnMissingResultsFile: true
+      testRunTitle: Final Whistle Python tests
