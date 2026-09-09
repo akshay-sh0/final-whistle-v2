@@ -1,4 +1,5 @@
 # Runs Python tests for application and pipeline changes.
+
 trigger:
   branches:
     include:
@@ -15,13 +16,6 @@ pr:
   branches:
     include:
       - main
-  paths:
-    include:
-      - src/**
-      - tests/**
-      - scripts/**
-      - pyproject.toml
-      - pipelines/python-ci.yml
 
 pool:
   vmImage: ubuntu-latest
