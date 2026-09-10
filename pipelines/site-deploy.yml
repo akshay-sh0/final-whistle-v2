@@ -6,13 +6,37 @@ trigger:
     include:
       - site/**
       - pipelines/site-deploy.yml
+      - src/**
+      - scripts/**
+      - pyproject.toml
 
 pr: none
+
+schedules:
+  - cron: "0 5 * * *"
+    displayName: Daily standings refresh
+    branches:
+      include:
+        - main
+    always: true
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
+  - task: UsePythonVersion@0
+    displayname: Use Python 3.12
+    inputs:
+      versionSpec: "3.12"
+
+  - script: python -m pip install .
+    displayName: Install project dependencies
+
+  - script: python scripts/build_current_standings.py
+    displayname: Refresh current standings
+    env:
+      FOOTBALL_DATA_API_TOKEN: $(footballDataApiToken)
+
   - script: |
       set -e
 
