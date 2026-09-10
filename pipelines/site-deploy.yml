@@ -5,10 +5,10 @@ trigger:
   paths:
     include:
       - site/**
-      - pipelines/site-deploy.yml
       - src/**
       - scripts/**
       - pyproject.toml
+      - pipelines/site-deploy.yml
 
 pr: none
 
@@ -85,3 +85,34 @@ steps:
       skip_app_build: true
       skip_api_build: true
       azure_static_web_apps_api_token: $(staticWebAppToken)
+
+  - script: |
+      set -e
+
+      site_url="https://lively-smoke-0de52a703.5.azurestaticapps.net"
+      home_file="$(Agent.TempDirectory)/final-whistle-home.html"
+      pl_file="$(Agent.TempDirectory)/final-whistle-pl.json"
+      pd_file="$(Agent.TempDirectory)/final-whistle-pd.json"
+
+      curl --fail --silent --show-error --location \
+        --retry 3 --retry-delay 5 --max-time 30 \
+        --output "$home_file" \
+        "$site_url/"
+
+      curl --fail --silent --show-error --location \
+        --retry 3 --retry-delay 5 --max-time 30 \
+        --output "$pl_file" \
+        "$site_url/data/standings/PL.json"
+
+      curl --fail --silent --show-error --location \
+        --retry 3 --retry-delay 5 --max-time 30 \
+        --output "$pd_file" \
+        "$site_url/data/standings/PD.json"
+
+      test -s "$home_file"
+      grep -Fq "<title>Final Whistle</title>" "$home_file"
+      python3 -m json.tool "$pl_file" > /dev/null
+      python3 -m json.tool "$pd_file" > /dev/null
+
+      echo "Live website smoke test passed."
+    displayName: Verify live website
