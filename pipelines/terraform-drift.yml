@@ -1,0 +1,94 @@
+trigger: none
+
+pr: none
+
+schedules:
+  - cron: "0 8 * * 1"
+    displayName: Weekly Terraform drift check
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  azureServiceConnection: "sc-finalwhistle-v2-dev-wif"
+  azureSubscriptionId: "4cfb5d08-807a-4d6b-b4b1-e2efab75eb49"
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: DetectDrift
+    displayName: Detect Terraform drift
+    steps:
+      - task: TerraformInstaller@1
+        displayName: Install Terraform 1.14.2
+        inputs:
+          terraformVersion: "1.14.2"
+
+      - script: terraform version
+        displayName: Verify Terraform installation
+
+      - task: AzureCLI@2
+        displayName: Verify Azure authentication
+        inputs:
+          azureSubscription: $(azureServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -euo pipefail
+            actual_subscription_id=$(az account show --query id --output tsv)
+            test "$actual_subscription_id" = "$(azureSubscriptionId)"
+            az account show --query "{name:name,id:id}" --output table
+
+      - task: AzureCLI@2
+        displayName: Initialize Terraform remote state
+        inputs:
+          azureSubscription: $(azureServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          workingDirectory: $(Build.SourcesDirectory)/infra
+          inlineScript: |
+            set -euo pipefail
+            terraform init -reconfigure -input=false -lockfile=readonly
+
+      - task: AzureCLI@2
+        displayName: Verify Terraform remote state
+        inputs:
+          azureSubscription: $(azureServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          workingDirectory: $(Build.SourcesDirectory)/infra
+          inlineScript: |
+            set -euo pipefail
+            terraform state list > state-resources.txt
+            test -s state-resources.txt
+            grep -Fx "azurerm_resource_group.main" state-resources.txt
+            grep -Fx "azurerm_static_web_app.main" state-resources.txt
+            cat state-resources.txt
+
+      - task: AzureCLI@2
+        displayName: Check for Terraform drift
+        inputs:
+          azureSubscription: $(azureServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          workingDirectory: $(Build.SourcesDirectory)/infra
+          inlineScript: |
+            set -uo pipefail
+
+            terraform plan -detailed-exitcode -input=false -no-color
+            plan_exit_code=$?
+
+            if [ "$plan_exit_code" -eq 0 ]; then
+              echo "No Terraform drift detected."
+              exit 0
+            fi
+
+            if [ "$plan_exit_code" -eq 2 ]; then
+              echo "Terraform drift detected."
+              exit 1
+            fi
+
+            echo "Terraform plan failed with exit code $plan_exit_code."
+            exit "$plan_exit_code"
