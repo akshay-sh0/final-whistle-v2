@@ -80,3 +80,7 @@ steps:
       inlineScript: |
         set -euo pipefail
         terraform plan -input=false -no-color -out=finalwhistle.tfplan
+
+  - publish: $(Build.SourcesDirectory)/infra/finalwhistle.tfplan
+    artifact: terraform-plan
+    displayName: Publish Terraform plan
