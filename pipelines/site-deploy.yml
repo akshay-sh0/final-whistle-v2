@@ -1,0 +1,63 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - site/**
+      - pipelines/site-deploy.yml
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: |
+      set -e
+
+      test -s site/index.html
+      test -s site/styles.css
+      test -s site/app.js
+      test -s site/favicon.svg
+
+      test -s site/data/history/premier-league.json
+      test -s site/data/history/la-liga.json
+      test -s site/data/standings/PL.json
+      test -s site/data/standings/PD.json
+
+      python3 -m json.tool site/data/history/premier-league.json > /dev/null
+      python3 -m json.tool site/data/history/la-liga.json > /dev/null
+      python3 -m json.tool site/data/standings/PL.json > /dev/null
+      python3 -m json.tool site/data/standings/PD.json > /dev/null
+
+      echo "Website files are valid."
+    displayName: Validate website files
+
+  - task: AzureCLI@2
+    displayName: Get Static Web App deployment token
+    inputs:
+      azureSubscription: sc-finalwhistle-v2-dev-wif
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e
+
+        deployment_token=$(az staticwebapp secrets list \
+          --name stapp-finalwhistle-v2-dev \
+          --resource-group rg-finalwhistle-v2-dev \
+          --query "properties.apiKey" \
+          --output tsv)
+
+        test -n "$deployment_token"
+
+        echo "##vso[task.setvariable variable=staticWebAppToken;issecret=true]$deployment_token"
+
+  - task: AzureStaticWebApp@0
+    displayName: Deploy website
+    inputs:
+      app_location: "site"
+      output_location: ""
+      skip_app_build: true
+      skip_api_build: true
+      azure_static_web_apps_api_token: $(staticWebAppToken)
