@@ -157,6 +157,14 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 230px));
 }
 
+.club-pair-filters {
+  display: contents;
+}
+
+.versus-label {
+  display: none;
+}
+
 .field-label {
   display: block;
   margin-bottom: 8px;
@@ -407,17 +415,224 @@ footer a:hover {
 
 @media (max-width: 700px) {
   .site-shell {
-    width: min(100% - 28px, 560px);
-    padding-top: 18px;
+    width: min(100% - 24px, 560px);
+    padding-top: 12px;
+  }
+
+  .site-header {
+    min-height: 62px;
   }
 
   .brand-mark {
-    width: 46px;
-    height: 46px;
+    width: 40px;
+    height: 40px;
   }
 
   .brand-name {
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .brand-tagline {
+    font-size: 9px;
+    letter-spacing: 1.4px;
+  }
+
+  .mobile-navigation {
+    padding: 10px 0;
+  }
+
+  .mobile-navigation .navigation-button {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .workspace {
+    padding-top: 18px;
+  }
+
+  .eyebrow {
+    margin-bottom: 7px;
+    font-size: 11px;
+  }
+
+  h1 {
+    font-size: 30px;
+    letter-spacing: -1.6px;
+  }
+
+  .intro {
+    margin: 9px 0 20px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .field-label {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  select {
+    height: 46px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%236b7a70' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+    padding-right: 34px;
+    font-size: 15px;
+  }
+
+  #on-this-day:not([hidden]),
+  #current-table:not([hidden]),
+  #head-to-head:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 155px;
+    column-gap: 12px;
+    row-gap: 12px;
+    align-items: end;
+  }
+
+  #on-this-day:not([hidden]) {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  #on-this-day > .eyebrow,
+  #on-this-day > .intro,
+  #current-table > .eyebrow,
+  #current-table > .intro,
+  #head-to-head > .eyebrow,
+  #head-to-head > .intro {
+    display: none;
+  }
+
+  #on-this-day > h1,
+  #current-table > h1,
+  #head-to-head > h1 {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    font-size: 24px;
+  }
+
+  #on-this-day > .filter-row,
+  #current-table > .filter-row,
+  #head-to-head > .filter-row {
+    display: contents;
+  }
+
+  .history-competition-filter,
+  .standings-competition-filter,
+  .head-to-head-competition-filter {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mobile-competition-label {
+    display: none !important;
+  }
+
+  .history-competition-filter select,
+  .standings-competition-filter select,
+  .head-to-head-competition-filter select {
+    height: 40px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .history-competition-filter {
+    width: 145px;
+    justify-self: end;
+  }
+
+  .history-month-filter {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .history-day-filter {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  #on-this-day .results-area {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: 2px;
+    padding-top: 14px;
+  }
+
+  #on-this-day .results-heading {
+    margin-bottom: 10px;
+    font-size: 17px;
+  }
+
+  #on-this-day .history-season {
+    margin-top: 16px;
+  }
+
+  #on-this-day .match-row {
+    padding: 10px 0;
+  }
+
+  .club-pair-filters {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr);
+    gap: 5px;
+    align-items: end;
+  }
+
+  .club-pair-filters select {
+    min-width: 0;
+    padding-right: 28px;
+    padding-left: 28px;
+    text-align: center;
+    text-align-last: center;
+    font-size: 12px;
+  }
+
+  .versus-label {
+    display: block;
+    padding-bottom: 14px;
+    color: #718076;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 850;
+  }
+
+  #head-to-head .metrics-row {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  #head-to-head .metric {
+    padding-top: 8px;
+  }
+
+  #head-to-head .metric-value {
+    font-size: 20px;
+    letter-spacing: -0.8px;
+  }
+
+  #head-to-head .metric-label {
+    margin-top: 5px;
+    font-size: 10px;
+  }
+
+  #head-to-head .results-area {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin-top: 0;
+    padding-top: 14px;
+  }
+
+  #head-to-head .results-heading {
+    margin-bottom: 8px;
+    font-size: 17px;
   }
 
   .filter-row.one-column,
@@ -442,8 +657,55 @@ footer a:hover {
     grid-column: 1 / -1;
   }
 
-  .intro {
-    font-size: 16px;
+  #current-table .table-wrapper {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    overflow-x: visible;
+    margin-top: 4px;
+    border: 1px solid #d8e0d7;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  #current-table table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  #current-table th,
+  #current-table td {
+    padding: 12px 6px;
+  }
+
+  #current-table th:nth-child(4),
+  #current-table td:nth-child(4),
+  #current-table th:nth-child(5),
+  #current-table td:nth-child(5),
+  #current-table th:nth-child(6),
+  #current-table td:nth-child(6) {
+    display: none;
+  }
+
+  #current-table th:nth-child(1),
+  #current-table td:nth-child(1) {
+    width: 44px;
+    text-align: center;
+  }
+
+  #current-table th:nth-child(3),
+  #current-table td:nth-child(3) {
+    width: 38px;
+  }
+
+  #current-table th:nth-child(7),
+  #current-table td:nth-child(7),
+  #current-table th:nth-child(8),
+  #current-table td:nth-child(8) {
+    width: 48px;
+  }
+
+  #current-table td:nth-child(2) {
+    overflow-wrap: break-word;
   }
 
   .project-link {

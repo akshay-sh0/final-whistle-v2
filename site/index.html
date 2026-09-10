@@ -65,20 +65,20 @@
             </p>
 
             <div class="filter-row three-columns">
-              <label>
-                <span class="field-label">COMPETITION</span>
+              <label class="history-competition-filter">
+                <span class="field-label mobile-competition-label">COMPETITION</span>
                 <select id="history-competition">
                   <option value="PL">Premier League</option>
                   <option value="PD">La Liga</option>
                 </select>
               </label>
 
-              <label>
+              <label class="history-month-filter">
                 <span class="field-label">MONTH</span>
                 <select id="history-month"></select>
               </label>
 
-              <label>
+              <label class="history-day-filter">
                 <span class="field-label">DAY</span>
                 <select id="history-day"></select>
               </label>
@@ -102,8 +102,8 @@
             </p>
 
             <div class="filter-row one-column">
-              <label>
-                <span class="field-label">COMPETITION</span>
+              <label class="standings-competition-filter">
+                <span class="field-label mobile-competition-label">COMPETITION</span>
                 <select id="standings-competition">
                   <option value="PL">Premier League</option>
                   <option value="PD">La Liga</option>
@@ -147,23 +147,27 @@
             </p>
 
             <div class="filter-row three-columns">
-              <label>
-                <span class="field-label">COMPETITION</span>
+              <label class="head-to-head-competition-filter">
+                <span class="field-label mobile-competition-label">COMPETITION</span>
                 <select id="head-to-head-competition">
                   <option value="PL">Premier League</option>
                   <option value="PD">La Liga</option>
                 </select>
               </label>
 
-              <label>
-                <span class="field-label">FIRST CLUB</span>
-                <select id="first-club"></select>
-              </label>
+              <div class="club-pair-filters">
+                <label>
+                  <span class="field-label">FIRST CLUB</span>
+                  <select id="first-club"></select>
+                </label>
 
-              <label>
-                <span class="field-label">SECOND CLUB</span>
-                <select id="second-club"></select>
-              </label>
+                <span class="versus-label" aria-hidden="true">VS</span>
+
+                <label>
+                  <span class="field-label">SECOND CLUB</span>
+                  <select id="second-club"></select>
+                </label>
+              </div>
             </div>
 
             <div
