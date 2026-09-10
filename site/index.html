@@ -64,7 +64,7 @@
               Historical Premier League and La Liga results for a selected date.
             </p>
 
-            <div class="filter-row three-columns">
+            <div class="filter-row history-controls">
               <label class="history-competition-filter">
                 <span class="field-label mobile-competition-label">COMPETITION</span>
                 <select id="history-competition">
@@ -73,20 +73,20 @@
                 </select>
               </label>
 
-              <label class="history-month-filter">
-                <span class="field-label">MONTH</span>
-                <select id="history-month"></select>
-              </label>
-
-              <label class="history-day-filter">
-                <span class="field-label">DAY</span>
-                <select id="history-day"></select>
-              </label>
+              <div class="date-navigation" aria-label="Choose archive date">
+                <button type="button" class="date-arrow" data-date-offset="-1" aria-label="Previous date">‹</button>
+                <label class="date-picker-label">
+                  <span class="sr-only">Choose date</span>
+                  <select id="history-date"></select>
+                </label>
+                <button type="button" class="date-arrow" data-date-offset="1" aria-label="Next date">›</button>
+              </div>
             </div>
 
             <div id="on-this-day-results" class="results-area" aria-live="polite">
               Loading historical matches...
             </div>
+            <p class="swipe-hint">Swipe left or right to change section</p>
           </section>
 
           <section
@@ -111,6 +111,8 @@
               </label>
             </div>
 
+            <p class="panel-status"><strong>Updated daily</strong> · Published by the Final Whistle data pipeline</p>
+
             <div class="table-wrapper">
               <table>
                 <thead>
@@ -132,6 +134,7 @@
                 </tbody>
               </table>
             </div>
+            <p class="swipe-hint">Swipe left or right to change section</p>
           </section>
 
           <section
@@ -176,7 +179,10 @@
               aria-live="polite"
             ></div>
 
+            <p id="head-to-head-rivalry" class="summary-line" aria-live="polite"></p>
+
             <div id="head-to-head-results" class="results-area"></div>
+            <p class="swipe-hint">Swipe left or right to change section</p>
           </section>
 
           <section id="clubs" class="view-panel" data-panel="clubs" hidden>
