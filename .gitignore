@@ -6,7 +6,7 @@ __pycache__/
 .coverage
 htmlcov/
 *.egg-info/
-site/data/
+
 
 # Terraform local working directory
 **/.terraform/*
