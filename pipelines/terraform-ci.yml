@@ -19,68 +19,109 @@ variables:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-  - task: TerraformInstaller@1
-    displayName: Install Terraform 1.14.2
-    inputs:
-      terraformVersion: "1.14.2"
+stages:
+  - stage: Plan
+    displayName: Terraform plan
+    jobs:
+      - job: ValidateAndPlan
+        displayName: Validate and create plan
+        steps:
+          - task: TerraformInstaller@1
+            displayName: Install Terraform 1.14.2
+            inputs:
+              terraformVersion: "1.14.2"
 
-  - script: terraform version
-    displayName: Verify Terraform installation
+          - script: terraform version
+            displayName: Verify Terraform installation
 
-  - task: AzureCLI@2
-    displayName: Verify Azure authentication
-    inputs:
-      azureSubscription: $(azureServiceConnection)
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        set -euo pipefail
-        actual_subscription_id=$(az account show --query id --output tsv)
-        test "$actual_subscription_id" = "$(azureSubscriptionId)"
-        az account show --query "{name:name,id:id}" --output table
+          - task: AzureCLI@2
+            displayName: Verify Azure authentication
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                actual_subscription_id=$(az account show --query id --output tsv)
+                test "$actual_subscription_id" = "$(azureSubscriptionId)"
+                az account show --query "{name:name,id:id}" --output table
 
-  - script: |
-      test -f providers.tf
-      terraform fmt -check -recursive
-    displayName: Check Terraform formatting
-    workingDirectory: $(Build.SourcesDirectory)/infra
+          - script: |
+              test -f providers.tf
+              terraform fmt -check -recursive
+            displayName: Check Terraform formatting
+            workingDirectory: $(Build.SourcesDirectory)/infra
 
-  - script: terraform init -backend=false -input=false -lockfile=readonly
-    displayName: Initialize Terraform for validation
-    workingDirectory: $(Build.SourcesDirectory)/infra
+          - script: terraform init -backend=false -input=false -lockfile=readonly
+            displayName: Initialize Terraform for validation
+            workingDirectory: $(Build.SourcesDirectory)/infra
 
-  - script: terraform validate -no-color
-    displayName: Validate Terraform configuration
-    workingDirectory: $(Build.SourcesDirectory)/infra
+          - script: terraform validate -no-color
+            displayName: Validate Terraform configuration
+            workingDirectory: $(Build.SourcesDirectory)/infra
 
-  - task: AzureCLI@2
-    displayName: Verify Terraform remote state
-    inputs:
-      azureSubscription: $(azureServiceConnection)
-      scriptType: bash
-      scriptLocation: inlineScript
-      workingDirectory: $(Build.SourcesDirectory)/infra
-      inlineScript: |
-        set -euo pipefail
-        terraform init -reconfigure -input=false -lockfile=readonly
-        terraform state list > state-resources.txt
-        test -s state-resources.txt
-        grep -Fx "azurerm_resource_group.main" state-resources.txt
-        grep -Fx "azurerm_static_web_app.main" state-resources.txt
-        cat state-resources.txt
+          - task: AzureCLI@2
+            displayName: Verify Terraform remote state
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Build.SourcesDirectory)/infra
+              inlineScript: |
+                set -euo pipefail
+                terraform init -reconfigure -input=false -lockfile=readonly
+                terraform state list > state-resources.txt
+                test -s state-resources.txt
+                grep -Fx "azurerm_resource_group.main" state-resources.txt
+                grep -Fx "azurerm_static_web_app.main" state-resources.txt
+                cat state-resources.txt
 
-  - task: AzureCLI@2
-    displayName: Create Terraform plan
-    inputs:
-      azureSubscription: $(azureServiceConnection)
-      scriptType: bash
-      scriptLocation: inlineScript
-      workingDirectory: $(Build.SourcesDirectory)/infra
-      inlineScript: |
-        set -euo pipefail
-        terraform plan -input=false -no-color -out=finalwhistle.tfplan
+          - task: AzureCLI@2
+            displayName: Create Terraform plan
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Build.SourcesDirectory)/infra
+              inlineScript: |
+                set -euo pipefail
+                terraform plan -input=false -no-color -out=finalwhistle.tfplan
 
-  - publish: $(Build.SourcesDirectory)/infra/finalwhistle.tfplan
-    artifact: terraform-plan
-    displayName: Publish Terraform plan
+          - publish: $(Build.SourcesDirectory)/infra/finalwhistle.tfplan
+            artifact: terraform-plan
+            displayName: Publish Terraform plan
+
+  - stage: Apply
+    displayName: Terraform apply
+    dependsOn: Plan
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: ApplyTerraform
+        displayName: Apply approved Terraform plan
+        environment: finalwhistle-v2-dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  displayName: Install Terraform 1.14.2
+                  inputs:
+                    terraformVersion: "1.14.2"
+
+                - task: AzureCLI@2
+                  displayName: Apply Terraform plan
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Build.SourcesDirectory)/infra
+                    inlineScript: |
+                      set -euo pipefail
+
+                      actual_subscription_id=$(az account show --query id --output tsv)
+                      test "$actual_subscription_id" = "$(azureSubscriptionId)"
+
+                      terraform init -reconfigure -input=false -lockfile=readonly
+                      terraform apply -input=false "$(Pipeline.Workspace)/terraform-plan/finalwhistle.tfplan"
