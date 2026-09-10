@@ -35,8 +35,7 @@ const viewOrder = ["on-this-day", "current-table", "head-to-head", "clubs"];
 
 const elements = {
   historyCompetition: document.querySelector("#history-competition"),
-  historyMonth: document.querySelector("#history-month"),
-  historyDay: document.querySelector("#history-day"),
+  historyDate: document.querySelector("#history-date"),
   onThisDayResults: document.querySelector("#on-this-day-results"),
 
   standingsCompetition: document.querySelector("#standings-competition"),
@@ -46,6 +45,7 @@ const elements = {
   firstClub: document.querySelector("#first-club"),
   secondClub: document.querySelector("#second-club"),
   headToHeadSummary: document.querySelector("#head-to-head-summary"),
+  headToHeadRivalry: document.querySelector("#head-to-head-rivalry"),
   headToHeadResults: document.querySelector("#head-to-head-results"),
 
   clubCompetition: document.querySelector("#club-competition"),
@@ -144,59 +144,50 @@ async function loadStandings(code) {
   return state.standings[code];
 }
 
-function populateMonthOptions() {
-  elements.historyMonth.replaceChildren();
+function dateKey(month, day) {
+  return `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
 
-  monthNames.forEach((monthName, index) => {
-    const option = document.createElement("option");
-    option.value = String(index + 1);
-    option.textContent = monthName;
-    elements.historyMonth.append(option);
+function populateDateOptions() {
+  elements.historyDate.replaceChildren();
+
+  monthNames.forEach((monthName, monthIndex) => {
+    const maximumDay = new Date(2024, monthIndex + 1, 0).getDate();
+
+    for (let day = 1; day <= maximumDay; day += 1) {
+      const option = document.createElement("option");
+      option.value = dateKey(monthIndex + 1, day);
+      option.textContent = `${day} ${monthName}`;
+      elements.historyDate.append(option);
+    }
   });
-}
-
-function daysInMonth(month) {
-  return new Date(2024, month, 0).getDate();
-}
-
-function populateDayOptions(month, selectedDay) {
-  const maximumDay = daysInMonth(month);
-
-  elements.historyDay.replaceChildren();
-
-  for (let day = 1; day <= maximumDay; day += 1) {
-    const option = document.createElement("option");
-    option.value = String(day);
-    option.textContent = String(day);
-    elements.historyDay.append(option);
-  }
-
-  const safeDay = Math.min(selectedDay, maximumDay);
-  elements.historyDay.value = String(safeDay);
 }
 
 function setDateToToday() {
   const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.getDate();
+  elements.historyDate.value = dateKey(today.getMonth() + 1, today.getDate());
+}
 
-  elements.historyMonth.value = String(currentMonth);
-  populateDayOptions(currentMonth, currentDay);
+function shiftHistoryDate(offset) {
+  const [month, day] = elements.historyDate.value.split("-").map(Number);
+  const date = new Date(2024, month - 1, day + offset);
+  elements.historyDate.value = dateKey(date.getMonth() + 1, date.getDate());
+  renderOnThisDay();
 }
 
 function createMatchRow(match) {
   const row = createElement("article", "match-row");
 
   const date = createElement("span", "match-date", formatDate(match.date));
-  const teams = createElement(
-    "span",
-    "match-teams",
-    `${match.home} vs ${match.away}`,
-  );
-  const score = createElement(
-    "span",
-    "match-score",
-    `${match.homeGoals}-${match.awayGoals}`,
+  const teams = createElement("span", "match-teams");
+  const homeTeam = createElement("span", "match-team", match.home);
+  const awayTeam = createElement("span", "match-team", match.away);
+  teams.append(homeTeam, awayTeam);
+
+  const score = createElement("span", "match-score");
+  score.append(
+    createElement("span", "match-score-line", String(match.homeGoals)),
+    createElement("span", "match-score-line", String(match.awayGoals)),
   );
 
   row.append(date, teams, score);
@@ -207,8 +198,7 @@ function createMatchRow(match) {
 function renderOnThisDay() {
   const code = elements.historyCompetition.value;
   const history = state.history[code];
-  const month = Number(elements.historyMonth.value);
-  const day = Number(elements.historyDay.value);
+  const [month, day] = elements.historyDate.value.split("-").map(Number);
   const selectedDate = formatDayAndMonth(month, day);
 
   const matches = history.matches.filter((match) => {
@@ -222,7 +212,7 @@ function renderOnThisDay() {
   const heading = createElement(
     "h2",
     "results-heading",
-    `Matches played on ${selectedDate}`,
+    `${matches.length} ${matches.length === 1 ? "match" : "matches"} played on ${selectedDate}`,
   );
 
   elements.onThisDayResults.append(heading);
@@ -350,6 +340,10 @@ function renderHeadToHead() {
     createMetric("metric-loss", String(secondWins), `${secondClub} wins`),
     createMetric("metric-goals", `${firstGoals}-${secondGoals}`, "Goals"),
   );
+
+  elements.headToHeadRivalry.textContent = matches.length
+    ? `${firstClub} lead the rivalry ${firstWins}–${secondWins}. ${draws} ${draws === 1 ? "match" : "matches"} ended level.`
+    : "No rivalry record is available for these clubs.";
 
   elements.headToHeadResults.replaceChildren();
 
@@ -540,21 +534,44 @@ async function renderStandings() {
 
     rows.forEach((row) => {
       const tableRow = document.createElement("tr");
+      const position = Number(row.position);
+
+      if (position <= 4) {
+        tableRow.classList.add("position-top");
+      } else if (position <= 6) {
+        tableRow.classList.add("position-europe");
+      } else if (position >= rows.length - 2) {
+        tableRow.classList.add("position-relegation");
+      }
+
+      const positionCell = createElement("td", "position-cell", String(row.position));
+      const clubCell = createElement("td", "club-cell");
+      const clubName = createElement("span", "club-name", row.team_name);
+      const details = createElement(
+        "span",
+        "standing-details",
+        `Played ${row.played_games} · Won ${row.won} · Drawn ${row.drawn} · Lost ${row.lost}`,
+      );
+      const detailsButton = createElement("button", "table-details-toggle", "Show record");
+      detailsButton.type = "button";
+      detailsButton.setAttribute("aria-expanded", "false");
+      detailsButton.addEventListener("click", () => {
+        const expanded = tableRow.classList.toggle("is-expanded");
+        detailsButton.textContent = expanded ? "Hide record" : "Show record";
+        detailsButton.setAttribute("aria-expanded", String(expanded));
+      });
+      clubCell.append(clubName, details, detailsButton);
 
       [
-        row.position,
-        row.team_name,
-        row.played_games,
-        row.won,
-        row.drawn,
-        row.lost,
-        row.goal_difference,
-        row.points,
-      ].forEach((value) => {
-        const cell = document.createElement("td");
-        cell.textContent = String(value);
-        tableRow.append(cell);
-      });
+        positionCell,
+        clubCell,
+        createElement("td", "played-cell", String(row.played_games)),
+        createElement("td", "won-cell", String(row.won)),
+        createElement("td", "drawn-cell", String(row.drawn)),
+        createElement("td", "lost-cell", String(row.lost)),
+        createElement("td", "goal-difference-cell", String(row.goal_difference)),
+        createElement("td", "points-cell", String(row.points)),
+      ].forEach((cell) => tableRow.append(cell));
 
       elements.standingsBody.append(tableRow);
     });
@@ -578,6 +595,10 @@ function createTableMessage(message) {
 
 function showView(viewName, direction = 0) {
   const selectedPanel = document.querySelector(`[data-panel="${viewName}"]`);
+
+  if (viewOrder.includes(viewName)) {
+    window.history.replaceState(null, "", `#${viewName}`);
+  }
 
   document.querySelectorAll("[data-panel]").forEach((panel) => {
     const isSelected = panel.dataset.panel === viewName;
@@ -677,15 +698,12 @@ function addEventListeners() {
   });
 
   elements.historyCompetition.addEventListener("change", renderOnThisDay);
-
-  elements.historyMonth.addEventListener("change", () => {
-    const previousDay = Number(elements.historyDay.value);
-
-    populateDayOptions(Number(elements.historyMonth.value), previousDay);
-    renderOnThisDay();
+  elements.historyDate.addEventListener("change", renderOnThisDay);
+  document.querySelectorAll("[data-date-offset]").forEach((button) => {
+    button.addEventListener("click", () => {
+      shiftHistoryDate(Number(button.dataset.dateOffset));
+    });
   });
-
-  elements.historyDay.addEventListener("change", renderOnThisDay);
 
   elements.standingsCompetition.addEventListener("change", renderStandings);
 
@@ -723,7 +741,7 @@ function addEventListeners() {
 }
 
 async function initialise() {
-  populateMonthOptions();
+  populateDateOptions();
   setDateToToday();
 
   try {
@@ -745,6 +763,11 @@ async function initialise() {
 
   addEventListeners();
   addSwipeNavigation();
+
+  const initialView = window.location.hash.slice(1);
+  if (viewOrder.includes(initialView)) {
+    showView(initialView);
+  }
 }
 
 initialise();
