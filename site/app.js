@@ -31,6 +31,8 @@ const monthNames = [
   "December",
 ];
 
+const viewOrder = ["on-this-day", "current-table", "head-to-head", "clubs"];
+
 const elements = {
   historyCompetition: document.querySelector("#history-competition"),
   historyMonth: document.querySelector("#history-month"),
@@ -574,7 +576,9 @@ function createTableMessage(message) {
   return row;
 }
 
-function showView(viewName) {
+function showView(viewName, direction = 0) {
+  const selectedPanel = document.querySelector(`[data-panel="${viewName}"]`);
+
   document.querySelectorAll("[data-panel]").forEach((panel) => {
     const isSelected = panel.dataset.panel === viewName;
 
@@ -585,6 +589,84 @@ function showView(viewName) {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === viewName);
   });
+
+  if (
+    direction !== 0 &&
+    selectedPanel &&
+    window.matchMedia("(max-width: 700px)").matches &&
+    typeof selectedPanel.animate === "function"
+  ) {
+    const startOffset = direction > 0 ? "100%" : "-100%";
+
+    selectedPanel.animate(
+      [
+        { transform: `translateX(${startOffset})`, opacity: 0.7 },
+        { transform: "translateX(0)", opacity: 1 },
+      ],
+      {
+        duration: 240,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
+    );
+  }
+}
+
+function addSwipeNavigation() {
+  const main = document.querySelector("main");
+  let touchStart = null;
+
+  main.addEventListener(
+    "touchstart",
+    (event) => {
+      if (
+        !window.matchMedia("(max-width: 700px)").matches ||
+        event.touches.length !== 1 ||
+        event.target.closest("select, button, a")
+      ) {
+        touchStart = null;
+        return;
+      }
+
+      const [touch] = event.touches;
+      touchStart = { x: touch.clientX, y: touch.clientY };
+    },
+    { passive: true },
+  );
+
+  main.addEventListener(
+    "touchend",
+    (event) => {
+      if (!touchStart) {
+        return;
+      }
+
+      const [touch] = event.changedTouches;
+      const horizontalDistance = touch.clientX - touchStart.x;
+      const verticalDistance = touch.clientY - touchStart.y;
+      touchStart = null;
+
+      if (
+        Math.abs(horizontalDistance) < 55 ||
+        Math.abs(horizontalDistance) <= Math.abs(verticalDistance) ||
+        event.target.closest("select, button, a")
+      ) {
+        return;
+      }
+
+      const currentView = document.querySelector(".view-panel.is-active")?.dataset
+        .panel;
+      const currentIndex = viewOrder.indexOf(currentView);
+      const nextIndex =
+        horizontalDistance < 0 ? currentIndex + 1 : currentIndex - 1;
+
+      if (currentIndex === -1 || nextIndex < 0 || nextIndex >= viewOrder.length) {
+        return;
+      }
+
+      showView(viewOrder[nextIndex], nextIndex > currentIndex ? 1 : -1);
+    },
+    { passive: true },
+  );
 }
 
 function addEventListeners() {
@@ -662,6 +744,7 @@ async function initialise() {
   renderStandings();
 
   addEventListeners();
+  addSwipeNavigation();
 }
 
 initialise();

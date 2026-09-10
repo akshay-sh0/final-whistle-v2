@@ -450,6 +450,11 @@ footer a:hover {
     padding-top: 18px;
   }
 
+  main {
+    overflow-x: hidden;
+    touch-action: pan-y;
+  }
+
   .eyebrow {
     margin-bottom: 7px;
     font-size: 11px;
