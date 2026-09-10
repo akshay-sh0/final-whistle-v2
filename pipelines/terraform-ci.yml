@@ -12,6 +12,10 @@ pr:
     include:
       - main
 
+variables:
+  azureServiceConnection: "sc-finalwhistle-v2-dev-wif"
+  azureSubscriptionId: "4cfb5d08-807a-4d6b-b4b1-e2efab75eb49"
+
 pool:
   vmImage: ubuntu-latest
 
@@ -23,6 +27,18 @@ steps:
 
   - script: terraform version
     displayName: Verify Terraform installation
+
+  - task: AzureCLI@2
+    displayName: Verify Azure authentication
+    inputs:
+      azureSubscription: $(azureServiceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -euo pipefail
+        actual_subscription_id=$(az account show --query id --output tsv)
+        test "$actual_subscription_id" = "$(azureSubscriptionId)"
+        az account show --query "{name:name,id:id}" --output table
 
   - script: |
       test -f providers.tf
@@ -37,3 +53,30 @@ steps:
   - script: terraform validate -no-color
     displayName: Validate Terraform configuration
     workingDirectory: $(Build.SourcesDirectory)/infra
+
+  - task: AzureCLI@2
+    displayName: Verify Terraform remote state
+    inputs:
+      azureSubscription: $(azureServiceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: $(Build.SourcesDirectory)/infra
+      inlineScript: |
+        set -euo pipefail
+        terraform init -reconfigure -input=false -lockfile=readonly
+        terraform state list > state-resources.txt
+        test -s state-resources.txt
+        grep -Fx "azurerm_resource_group.main" state-resources.txt
+        grep -Fx "azurerm_static_web_app.main" state-resources.txt
+        cat state-resources.txt
+
+  - task: AzureCLI@2
+    displayName: Create Terraform plan
+    inputs:
+      azureSubscription: $(azureServiceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: $(Build.SourcesDirectory)/infra
+      inlineScript: |
+        set -euo pipefail
+        terraform plan -input=false -no-color -out=finalwhistle.tfplan
