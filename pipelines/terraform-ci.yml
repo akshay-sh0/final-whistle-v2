@@ -60,6 +60,14 @@ stages:
             displayName: Validate Terraform configuration
             workingDirectory: $(Build.SourcesDirectory)/infra
 
+          - script: |
+              set -euo pipefail
+              test -f main.tf
+              terraform init -backend=false -input=false -lockfile=readonly
+              terraform validate -no-color
+            displayName: Validate Terraform bootstrap configuration
+            workingDirectory: $(Build.SourcesDirectory)/infra/bootstrap
+
           - task: AzureCLI@2
             displayName: Verify Terraform remote state
             inputs:
