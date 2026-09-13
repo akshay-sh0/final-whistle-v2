@@ -15,6 +15,7 @@ pr:
 variables:
   azureServiceConnection: "sc-finalwhistle-v2-dev-wif"
   azureSubscriptionId: "4cfb5d08-807a-4d6b-b4b1-e2efab75eb49"
+  PIP_CACHE_DIR: "$(Pipeline.Workspace)/.pip"
 
 pool:
   vmImage: ubuntu-latest
@@ -34,8 +35,19 @@ stages:
           - script: terraform version
             displayName: Verify Terraform installation
 
+          - task: Cache@2
+            displayName: Restore Checkov package cache
+            inputs:
+              key: 'pip | "$(Agent.OS)" | "checkov-3.3.17"'
+              restoreKeys: |
+                pip | "$(Agent.OS)"
+              path: $(PIP_CACHE_DIR)
+
           - script: |
-              python -m pip install --disable-pip-version-check checkov==3.3.17
+              python -m pip install \
+                --disable-pip-version-check \
+                --cache-dir "$(PIP_CACHE_DIR)" \
+                checkov==3.3.17
               checkov --version
             displayName: Install Checkov 3.3.17
 
