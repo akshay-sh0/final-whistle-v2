@@ -34,6 +34,11 @@ stages:
           - script: terraform version
             displayName: Verify Terraform installation
 
+          - script: |
+              python -m pip install --disable-pip-version-check checkov==3.3.17
+              checkov --version
+            displayName: Install Checkov 3.3.17
+
           - task: AzureCLI@2
             displayName: Verify Azure authentication
             inputs:
@@ -67,6 +72,34 @@ stages:
               terraform validate -no-color
             displayName: Validate Terraform bootstrap configuration
             workingDirectory: $(Build.SourcesDirectory)/infra/bootstrap
+
+          - script: |
+              set -euo pipefail
+
+              checkov_exit_code=0
+              checkov -d . --framework terraform --output json > checkov-results.json || checkov_exit_code=$?
+
+              test -s checkov-results.json
+
+              resource_count=$(jq -r '.summary.resource_count // 0' checkov-results.json)
+              parsing_errors=$(jq -r '.summary.parsing_errors // 0' checkov-results.json)
+
+              echo "Checkov scanned $resource_count Terraform resources."
+              jq '.summary' checkov-results.json
+
+              if [ "$resource_count" -eq 0 ]; then
+                echo "Security scan failed because Checkov scanned zero resources."
+                exit 1
+              fi
+
+              if [ "$parsing_errors" -gt 0 ]; then
+                echo "Security scan failed because Checkov found parsing errors."
+                exit 1
+              fi
+
+              exit "$checkov_exit_code"
+            displayName: Scan Terraform security
+            workingDirectory: $(Build.SourcesDirectory)/infra
 
           - task: AzureCLI@2
             displayName: Verify Terraform remote state
