@@ -1,6 +1,12 @@
 import json
+from datetime import datetime, timezone
+
 import pytest
-from finalwhistle.exporters.json_exporter import export_standings
+
+from finalwhistle.exporters.json_exporter import (
+    export_standings,
+    export_update_metadata,
+)
 from finalwhistle.models.standing import StandingRow
 
 
@@ -43,10 +49,32 @@ def test_export_standings_writes_json_file(tmp_path):
     ]
     assert not (tmp_path / "PL.tmp").exists()
 
+
 def test_export_standings_rejects_empty_rows(tmp_path):
     output_path = tmp_path / "PL.json"
 
     with pytest.raises(ValueError, match="Cannot export empty standings."):
         export_standings([], output_path)
+
+    assert not output_path.exists()
+
+
+def test_export_update_metadata_writes_utc_timestamp(tmp_path):
+    output_path = tmp_path / "metadata.json"
+    updated_at = datetime(2026, 9, 13, 13, 5, tzinfo=timezone.utc)
+
+    export_update_metadata(updated_at, output_path)
+
+    exported_data = json.loads(output_path.read_text(encoding="utf-8"))
+
+    assert exported_data == {"updated_at": "2026-09-13T13:05:00Z"}
+    assert not (tmp_path / "metadata.tmp").exists()
+
+
+def test_export_update_metadata_rejects_timestamp_without_timezone(tmp_path):
+    output_path = tmp_path / "metadata.json"
+
+    with pytest.raises(ValueError, match="must include a timezone"):
+        export_update_metadata(datetime(2026, 9, 13, 13, 5), output_path)
 
     assert not output_path.exists()
