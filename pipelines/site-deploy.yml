@@ -13,8 +13,8 @@ trigger:
 pr: none
 
 schedules:
-  - cron: "0 5 * * *"
-    displayName: Daily standings refresh
+  - cron: "0 */4 * * *"
+    displayName: Refresh standings every four hours
     branches:
       include:
         - main
@@ -49,11 +49,13 @@ steps:
       test -s site/data/history/la-liga.json
       test -s site/data/standings/PL.json
       test -s site/data/standings/PD.json
+      test -s site/data/standings/metadata.json
 
       python3 -m json.tool site/data/history/premier-league.json > /dev/null
       python3 -m json.tool site/data/history/la-liga.json > /dev/null
       python3 -m json.tool site/data/standings/PL.json > /dev/null
       python3 -m json.tool site/data/standings/PD.json > /dev/null
+      python3 -c 'import json; from datetime import datetime; value=json.load(open("site/data/standings/metadata.json"))["updated_at"]; datetime.fromisoformat(value.replace("Z", "+00:00"))'
 
       echo "Website files are valid."
     displayName: Validate website files
@@ -93,6 +95,7 @@ steps:
       home_file="$(Agent.TempDirectory)/final-whistle-home.html"
       pl_file="$(Agent.TempDirectory)/final-whistle-pl.json"
       pd_file="$(Agent.TempDirectory)/final-whistle-pd.json"
+      metadata_file="$(Agent.TempDirectory)/final-whistle-metadata.json"
 
       curl --fail --silent --show-error --location \
         --retry 3 --retry-delay 5 --max-time 30 \
@@ -109,10 +112,16 @@ steps:
         --output "$pd_file" \
         "$site_url/data/standings/PD.json"
 
+      curl --fail --silent --show-error --location \
+        --retry 3 --retry-delay 5 --max-time 30 \
+        --output "$metadata_file" \
+        "$site_url/data/standings/metadata.json"
+
       test -s "$home_file"
       grep -Fq "<title>Final Whistle</title>" "$home_file"
       python3 -m json.tool "$pl_file" > /dev/null
       python3 -m json.tool "$pd_file" > /dev/null
+      python3 -c 'import json, sys; from datetime import datetime; value=json.load(open(sys.argv[1]))["updated_at"]; datetime.fromisoformat(value.replace("Z", "+00:00"))' "$metadata_file"
 
       echo "Live website smoke test passed."
     displayName: Verify live website

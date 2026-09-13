@@ -11,9 +11,12 @@ const competitions = {
   },
 };
 
+const standingsMetadataPath = "data/standings/metadata.json";
+
 const state = {
   history: {},
   standings: {},
+  standingsMetadata: null,
 };
 
 const monthNames = [
@@ -40,6 +43,7 @@ const elements = {
 
   standingsCompetition: document.querySelector("#standings-competition"),
   standingsBody: document.querySelector("#standings-body"),
+  standingsLastUpdated: document.querySelector("#standings-last-updated"),
 
   headToHeadCompetition: document.querySelector("#head-to-head-competition"),
   firstClub: document.querySelector("#first-club"),
@@ -142,6 +146,51 @@ async function loadStandings(code) {
   state.standings[code] = await response.json();
 
   return state.standings[code];
+}
+
+async function loadStandingsMetadata() {
+  if (state.standingsMetadata) {
+    return state.standingsMetadata;
+  }
+
+  const response = await fetch(standingsMetadataPath, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error("Could not load the latest update time.");
+  }
+
+  state.standingsMetadata = await response.json();
+
+  return state.standingsMetadata;
+}
+
+function formatUpdateTime(timestamp) {
+  const updatedAt = new Date(timestamp);
+
+  if (Number.isNaN(updatedAt.getTime())) {
+    throw new Error("The latest update time is invalid.");
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(updatedAt);
+}
+
+async function renderStandingsStatus() {
+  try {
+    const metadata = await loadStandingsMetadata();
+    const formattedTime = formatUpdateTime(metadata.updated_at);
+
+    elements.standingsLastUpdated.textContent = `Last updated ${formattedTime}`;
+    elements.standingsLastUpdated.title = metadata.updated_at;
+  } catch {
+    elements.standingsLastUpdated.textContent = "Latest update time unavailable";
+  }
 }
 
 function dateKey(month, day) {
@@ -760,6 +809,7 @@ async function initialise() {
   renderHeadToHead();
   renderClub();
   renderStandings();
+  renderStandingsStatus();
 
   addEventListeners();
   addSwipeNavigation();
