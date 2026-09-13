@@ -7,7 +7,7 @@ resource "azurerm_resource_group_policy_assignment" "require_workload_tag" {
   display_name         = "Require workload tag on resources"
   resource_group_id    = azurerm_resource_group.main.id
   policy_definition_id = data.azurerm_policy_definition.require_tag.id
-  enforce              = false
+  enforce              = true
 
   parameters = jsonencode({
     tagName = {
