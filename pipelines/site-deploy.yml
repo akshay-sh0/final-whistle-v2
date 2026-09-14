@@ -89,13 +89,15 @@ steps:
       azure_static_web_apps_api_token: $(staticWebAppToken)
 
   - script: |
-      set -e
+      set -euo pipefail
 
       site_url="https://lively-smoke-0de52a703.5.azurestaticapps.net"
       home_file="$(Agent.TempDirectory)/final-whistle-home.html"
       pl_file="$(Agent.TempDirectory)/final-whistle-pl.json"
       pd_file="$(Agent.TempDirectory)/final-whistle-pd.json"
       metadata_file="$(Agent.TempDirectory)/final-whistle-metadata.json"
+
+      expected_updated_at=$(python3 -c 'import json; print(json.load(open("site/data/standings/metadata.json"))["updated_at"])')
 
       curl --fail --silent --show-error --location \
         --retry 3 --retry-delay 5 --max-time 30 \
@@ -112,16 +114,36 @@ steps:
         --output "$pd_file" \
         "$site_url/data/standings/PD.json"
 
-      curl --fail --silent --show-error --location \
-        --retry 3 --retry-delay 5 --max-time 30 \
-        --output "$metadata_file" \
-        "$site_url/data/standings/metadata.json"
+      live_updated_at=""
+
+      for attempt in 1 2 3 4 5; do
+        curl --fail --silent --show-error --location \
+          --retry 3 --retry-delay 5 --max-time 30 \
+          --output "$metadata_file" \
+          "$site_url/data/standings/metadata.json?build=$(Build.BuildId)"
+
+        live_updated_at=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["updated_at"])' "$metadata_file")
+
+        if [ "$live_updated_at" = "$expected_updated_at" ]; then
+          break
+        fi
+
+        echo "Waiting for the latest metadata deployment: attempt $attempt of 5."
+        sleep 10
+      done
 
       test -s "$home_file"
       grep -Fq "<title>Final Whistle</title>" "$home_file"
       python3 -m json.tool "$pl_file" > /dev/null
       python3 -m json.tool "$pd_file" > /dev/null
-      python3 -c 'import json, sys; from datetime import datetime; value=json.load(open(sys.argv[1]))["updated_at"]; datetime.fromisoformat(value.replace("Z", "+00:00"))' "$metadata_file"
 
+      if [ "$live_updated_at" != "$expected_updated_at" ]; then
+        echo "Live metadata does not match the current pipeline build."
+        echo "Expected: $expected_updated_at"
+        echo "Live: $live_updated_at"
+        exit 1
+      fi
+
+      echo "Live website contains the latest standings update: $live_updated_at"
       echo "Live website smoke test passed."
     displayName: Verify live website
