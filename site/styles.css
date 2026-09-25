@@ -384,6 +384,17 @@ select:focus {
   color: #264234;
 }
 
+.data-range {
+  width: fit-content;
+  margin: 12px 0 0;
+  border-radius: 999px;
+  background: #edf4ed;
+  padding: 8px 12px;
+  color: #587064;
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .club-line {
   display: flex;
   align-items: center;
@@ -918,6 +929,13 @@ footer a:hover {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .data-range {
+    margin-top: 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   .form-marker {

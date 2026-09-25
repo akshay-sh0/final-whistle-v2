@@ -13,6 +13,22 @@ const competitions = {
   },
 };
 
+const currentTeamAliases = {
+  PD: {
+    "Atlético Madrid": "Club Atlético de Madrid",
+    "CD Alavés": "Deportivo Alavés",
+    "Deportivo La Coruña": "RC Deportivo La Coruña",
+    "Espanyol Barcelona": "RCD Espanyol de Barcelona",
+    Levante: "Levante UD",
+    Málaga: "Málaga CF",
+    "Racing Santander": "Real Racing Club de Santander",
+    "Rayo Vallecano": "Rayo Vallecano de Madrid",
+    "RC Celta": "RC Celta de Vigo",
+    "Real Betis": "Real Betis Balompié",
+    "Real Sociedad": "Real Sociedad de Fútbol",
+  },
+};
+
 const standingsMetadataPath = "data/standings/metadata.json";
 
 const state = {
@@ -67,6 +83,7 @@ const elements = {
 
   clubCompetition: document.querySelector("#club-competition"),
   clubSelect: document.querySelector("#club-select"),
+  clubDataRange: document.querySelector("#club-data-range"),
   clubSummary: document.querySelector("#club-summary"),
   clubOutcomes: document.querySelector("#club-outcomes"),
   clubRecords: document.querySelector("#club-records"),
@@ -98,6 +115,25 @@ function formatDate(dateString) {
 
 function formatDayAndMonth(month, day) {
   return `${monthNames[month - 1]} ${day}`;
+}
+
+function historyDateRange(history) {
+  const dates = history.matches.map((match) => match.date).sort();
+
+  return `${formatDate(dates[0])} to ${formatDate(dates[dates.length - 1])}`;
+}
+
+function normaliseCurrentTeamName(name) {
+  return name.replace(/\s+(AFC|FC|CF)$/i, "").trim();
+}
+
+function findCurrentTeam(code, historicalName, standings) {
+  const currentName = currentTeamAliases[code]?.[historicalName] || historicalName;
+  const normalisedName = normaliseCurrentTeamName(currentName);
+
+  return standings.find(
+    (row) => normaliseCurrentTeamName(row.team_name) === normalisedName,
+  );
 }
 
 function decodeHistoryPayload(payload) {
@@ -402,12 +438,16 @@ function createOutcomeBreakdown(items) {
   return wrapper;
 }
 
-function createFormStrip(results, label = "Recent form, newest result first") {
+function createFormStrip(
+  results,
+  label = "Recent form, newest result first",
+  emptyMessage = "Current form unavailable",
+) {
   const strip = createElement("span", "form-strip");
   strip.setAttribute("aria-label", label);
 
   if (!results || results.length === 0) {
-    strip.append(createElement("span", "form-empty", "No recent form"));
+    strip.append(createElement("span", "form-empty", emptyMessage));
     return strip;
   }
 
@@ -555,10 +595,14 @@ function createRecordLine(emoji, title, text) {
   return line;
 }
 
-function renderClub() {
+async function renderClub() {
   const code = elements.clubCompetition.value;
   const club = elements.clubSelect.value;
   const history = state.history[code];
+
+  elements.clubDataRange.textContent =
+    `Historical records below cover ${historyDateRange(history)}. ` +
+    "Current form uses the latest live league results.";
 
   const matches = history.matches
     .filter((match) => match.home === club || match.away === club)
@@ -684,27 +728,45 @@ function renderClub() {
     `${goalsFor} scored and ${goalsAgainst} conceded.`,
   );
 
-  const recentResults = matches.slice(0, 5).map((match) => {
-    const score = clubScoreForMatch(match, club);
-
-    if (score.goalsFor > score.goalsAgainst) {
-      return "W";
-    }
-
-    if (score.goalsFor < score.goalsAgainst) {
-      return "L";
-    }
-
-    return "D";
-  });
-
   const formLine = createElement("div", "club-form-line");
   formLine.append(
-    createElement("strong", "", "Recent form"),
-    createFormStrip(recentResults),
+    createElement("strong", "", "Current form"),
+    createFormStrip([], undefined, "Loading..."),
   );
 
   elements.clubRecords.append(goalLine, formLine);
+
+  try {
+    const [standings, insights] = await Promise.all([
+      loadStandings(code),
+      loadMatchInsights(code),
+    ]);
+    const currentTeam = findCurrentTeam(code, club, standings);
+    const recentResults = currentTeam
+      ? insights.recent_form?.[String(currentTeam.team_id)]
+      : [];
+
+    if (
+      elements.clubCompetition.value !== code ||
+      elements.clubSelect.value !== club
+    ) {
+      return;
+    }
+
+    formLine.replaceChildren(
+      createElement("strong", "", "Current form"),
+      createFormStrip(
+        recentResults,
+        "Current form, newest result first",
+        currentTeam ? "No completed matches yet" : "Not in the current league",
+      ),
+    );
+  } catch (error) {
+    formLine.replaceChildren(
+      createElement("strong", "", "Current form"),
+      createElement("span", "form-empty", "Live form could not be loaded"),
+    );
+  }
 }
 
 function formatFixtureDay(timestamp) {
