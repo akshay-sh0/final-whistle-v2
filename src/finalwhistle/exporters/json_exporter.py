@@ -3,6 +3,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from finalwhistle.models.match import UpcomingMatch
 from finalwhistle.models.standing import StandingRow
 
 
@@ -18,12 +19,34 @@ def export_update_metadata(updated_at: datetime, output_path: Path) -> None:
     if updated_at.tzinfo is None:
         raise ValueError("The update timestamp must include a timezone.")
 
-    timestamp = (
+    _write_json({"updated_at": _format_timestamp(updated_at)}, output_path)
+
+
+def export_match_insights(
+    upcoming: list[UpcomingMatch],
+    recent_form: dict[str, list[str]],
+    updated_at: datetime,
+    output_path: Path,
+) -> None:
+    if updated_at.tzinfo is None:
+        raise ValueError("The update timestamp must include a timezone.")
+
+    _write_json(
+        {
+            "updated_at": _format_timestamp(updated_at),
+            "upcoming": [asdict(match) for match in upcoming],
+            "recent_form": recent_form,
+        },
+        output_path,
+    )
+
+
+def _format_timestamp(updated_at: datetime) -> str:
+    return (
         updated_at.astimezone(timezone.utc)
         .isoformat(timespec="seconds")
         .replace("+00:00", "Z")
     )
-    _write_json({"updated_at": timestamp}, output_path)
 
 
 def _write_json(data: object, output_path: Path) -> None:

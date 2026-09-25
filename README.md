@@ -32,8 +32,11 @@ The objective was to understand the complete delivery process well enough to exp
 
 - Historical Premier League and La Liga matches by calendar date
 - Current league standings
+- Upcoming Premier League and La Liga fixtures
+- Recent five-match form indicators
 - Head-to-head club comparisons
-- Individual club records
+- Head-to-head result distribution
+- Individual club records, win rate, and W/D/L distribution
 - Responsive desktop and mobile layouts
 - Swipe navigation between sections on mobile devices
 - Standings refreshed every four hours
@@ -121,14 +124,14 @@ The website pipeline runs after relevant changes are merged and on a four-hour s
 It:
 
 1. Installs the Python application.
-2. Retrieves Premier League and La Liga standings.
-3. Generates static JSON files and an update timestamp.
+2. Retrieves Premier League and La Liga standings and match schedules.
+3. Generates static JSON files for standings, upcoming fixtures, recent form, and an update timestamp.
 4. Confirms that all expected website and data files exist.
 5. Validates the generated JSON.
 6. Retrieves the Static Web App deployment token securely.
 7. Deploys the website.
 8. Performs a live smoke test.
-9. Confirms that the live update timestamp matches the current pipeline run.
+9. Confirms that the live standings and fixture timestamps match the current pipeline run.
 
 The final timestamp comparison prevents an old or cached deployment from being reported as successful. The check retries briefly while Azure completes deployment propagation.
 
@@ -186,7 +189,7 @@ The `infra` configuration manages:
 
 - Azure resource group
 - Azure Static Web App on the Free plan
-- Resource-group budget and email thresholds
+- Resource-group budget thresholds that notify the subscription Owner role
 - Required `workload` tag policy assignment
 - Consistent workload, environment, ownership, and deployment tags
 

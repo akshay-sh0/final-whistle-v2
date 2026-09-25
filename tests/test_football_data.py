@@ -48,4 +48,27 @@ def test_get_standings_sends_expected_request(monkeypatch):
         headers={"X-Auth-Token": "test-token"},
         timeout=10,
     )
-    response.raise_for_status.assert_called_once_with()     
+    response.raise_for_status.assert_called_once_with()
+
+
+def test_get_matches_sends_expected_request(monkeypatch):
+    response = Mock()
+    response.json.return_value = {"matches": []}
+
+    get = Mock(return_value=response)
+    monkeypatch.setattr(
+        "finalwhistle.api.football_data.requests.get",
+        get,
+    )
+
+    client = FootballDataClient("test-token")
+
+    matches = client.get_matches("PD")
+
+    assert matches == {"matches": []}
+    get.assert_called_once_with(
+        "https://api.football-data.org/v4/competitions/PD/matches",
+        headers={"X-Auth-Token": "test-token"},
+        timeout=10,
+    )
+    response.raise_for_status.assert_called_once_with()

@@ -27,15 +27,25 @@
 
       <nav class="mobile-navigation" aria-label="Website sections">
         <button class="navigation-button is-active" data-view="on-this-day">
-          On This Day
+          <span class="nav-label-full">On This Day</span>
+          <span class="nav-label-short">Today</span>
         </button>
         <button class="navigation-button" data-view="current-table">
-          Current Table
+          <span class="nav-label-full">Current Table</span>
+          <span class="nav-label-short">Table</span>
+        </button>
+        <button class="navigation-button" data-view="upcoming">
+          <span class="nav-label-full">Upcoming</span>
+          <span class="nav-label-short">Fixtures</span>
         </button>
         <button class="navigation-button" data-view="head-to-head">
-          Head to Head
+          <span class="nav-label-full">Head to Head</span>
+          <span class="nav-label-short">H2H</span>
         </button>
-        <button class="navigation-button" data-view="clubs">Clubs</button>
+        <button class="navigation-button" data-view="clubs">
+          <span class="nav-label-full">Clubs</span>
+          <span class="nav-label-short">Clubs</span>
+        </button>
       </nav>
 
       <div class="workspace">
@@ -45,6 +55,9 @@
           </button>
           <button class="navigation-button" data-view="current-table">
             Current Table
+          </button>
+          <button class="navigation-button" data-view="upcoming">
+            Upcoming
           </button>
           <button class="navigation-button" data-view="head-to-head">
             Head to Head
@@ -85,6 +98,29 @@
 
             <div id="on-this-day-results" class="results-area" aria-live="polite">
               Loading historical matches...
+            </div>
+            <p class="swipe-hint">Swipe left or right to change section</p>
+          </section>
+
+          <section id="upcoming" class="view-panel" data-panel="upcoming" hidden>
+            <p class="eyebrow">NEXT FIXTURES</p>
+            <h1>Upcoming Matches</h1>
+            <p class="intro">
+              The next scheduled Premier League and La Liga fixtures.
+            </p>
+
+            <div class="filter-row one-column">
+              <label class="upcoming-competition-filter">
+                <span class="field-label mobile-competition-label">COMPETITION</span>
+                <select id="upcoming-competition">
+                  <option value="PL">Premier League</option>
+                  <option value="PD">La Liga</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="upcoming-results" class="fixtures-area" aria-live="polite">
+              Loading upcoming matches...
             </div>
             <p class="swipe-hint">Swipe left or right to change section</p>
           </section>
@@ -187,6 +223,12 @@
               aria-live="polite"
             ></div>
 
+            <div
+              id="head-to-head-outcomes"
+              class="outcome-breakdown"
+              aria-label="Head-to-head result distribution"
+            ></div>
+
             <p id="head-to-head-rivalry" class="summary-line" aria-live="polite"></p>
 
             <div id="head-to-head-results" class="results-area"></div>
@@ -216,6 +258,11 @@
             </div>
 
             <div id="club-summary" class="metrics-row" aria-live="polite"></div>
+            <div
+              id="club-outcomes"
+              class="outcome-breakdown"
+              aria-label="Club result distribution"
+            ></div>
             <div id="club-records" class="records-area"></div>
           </section>
         </main>

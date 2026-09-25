@@ -36,7 +36,7 @@ resource "azurerm_consumption_budget_resource_group" "main" {
     threshold      = 80
     operator       = "GreaterThanOrEqualTo"
     threshold_type = "Forecasted"
-    contact_emails = ["akshaydshirodkar@gmail.com"]
+    contact_roles  = ["Owner"]
   }
 
   notification {
@@ -44,6 +44,6 @@ resource "azurerm_consumption_budget_resource_group" "main" {
     threshold      = 100
     operator       = "GreaterThanOrEqualTo"
     threshold_type = "Actual"
-    contact_emails = ["akshaydshirodkar@gmail.com"]
+    contact_roles  = ["Owner"]
   }
 }
