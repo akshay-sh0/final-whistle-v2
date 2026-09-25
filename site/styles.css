@@ -82,6 +82,10 @@ button {
   display: none;
 }
 
+.nav-label-short {
+  display: none;
+}
+
 .navigation-button {
   width: 100%;
   border: 0;
@@ -298,6 +302,62 @@ select:focus {
   color: #155e3a;
 }
 
+.outcome-breakdown {
+  margin-top: 20px;
+}
+
+.outcome-wrapper:empty {
+  display: none;
+}
+
+.outcome-bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e1e7e0;
+}
+
+.outcome-segment {
+  min-width: 3px;
+}
+
+.outcome-win {
+  background: #2b8b57;
+}
+
+.outcome-draw {
+  background: #9aa69e;
+}
+
+.outcome-loss {
+  background: #d36b58;
+}
+
+.outcome-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 9px;
+  color: #718076;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.outcome-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.outcome-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
 .record-line {
   display: flex;
   gap: 10px;
@@ -314,6 +374,110 @@ select:focus {
 
 .record-line strong {
   color: #264234;
+}
+
+.club-form-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  color: #264234;
+}
+
+.club-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.form-strip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.form-marker {
+  display: inline-grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.form-w {
+  background: #2b8b57;
+}
+
+.form-d {
+  background: #7f8d83;
+}
+
+.form-l {
+  background: #d36b58;
+}
+
+.form-empty {
+  color: #8b978f;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fixtures-area {
+  margin-top: 30px;
+  border-top: 1px solid #d8e0d7;
+  padding-top: 4px;
+}
+
+.fixture-day {
+  margin: 22px 0 10px;
+  color: #24734b;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.fixture-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 8px;
+  border: 1px solid #e1e7e0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 14px 16px;
+}
+
+.fixture-teams,
+.fixture-details {
+  display: grid;
+  gap: 4px;
+}
+
+.fixture-team {
+  color: #243e30;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.fixture-details {
+  justify-items: end;
+}
+
+.fixture-time {
+  color: #155e3a;
+  font-size: 15px;
+}
+
+.fixture-matchday {
+  color: #718076;
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .table-wrapper {
@@ -416,7 +580,7 @@ footer a:hover {
 @media (max-width: 700px) {
   .site-shell {
     width: min(100% - 24px, 560px);
-    padding-top: 12px;
+    padding: 12px 0 76px;
   }
 
   .site-header {
@@ -438,12 +602,36 @@ footer a:hover {
   }
 
   .mobile-navigation {
-    padding: 10px 0;
+    position: fixed;
+    z-index: 20;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, 560px);
+    transform: translateX(-50%);
+    gap: 0;
+    overflow: visible;
+    border-top: 1px solid #d8e0d7;
+    border-bottom: 0;
+    background: rgba(251, 251, 247, 0.97);
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 24px rgba(24, 53, 42, 0.08);
   }
 
   .mobile-navigation .navigation-button {
-    padding: 8px 10px;
-    font-size: 13px;
+    flex: 1 1 20%;
+    min-width: 0;
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .mobile-navigation .nav-label-full {
+    display: none;
+  }
+
+  .mobile-navigation .nav-label-short {
+    display: inline;
   }
 
   .workspace {
@@ -489,6 +677,7 @@ footer a:hover {
 
   #on-this-day:not([hidden]),
   #current-table:not([hidden]),
+  #upcoming:not([hidden]),
   #head-to-head:not([hidden]) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 155px;
@@ -505,6 +694,8 @@ footer a:hover {
   #on-this-day > .intro,
   #current-table > .eyebrow,
   #current-table > .intro,
+  #upcoming > .eyebrow,
+  #upcoming > .intro,
   #head-to-head > .eyebrow,
   #head-to-head > .intro {
     display: none;
@@ -512,6 +703,7 @@ footer a:hover {
 
   #on-this-day > h1,
   #current-table > h1,
+  #upcoming > h1,
   #head-to-head > h1 {
     grid-column: 1;
     grid-row: 1;
@@ -521,12 +713,14 @@ footer a:hover {
 
   #on-this-day > .filter-row,
   #current-table > .filter-row,
+  #upcoming > .filter-row,
   #head-to-head > .filter-row {
     display: contents;
   }
 
   .history-competition-filter,
   .standings-competition-filter,
+  .upcoming-competition-filter,
   .head-to-head-competition-filter {
     grid-column: 2;
     grid-row: 1;
@@ -538,6 +732,7 @@ footer a:hover {
 
   .history-competition-filter select,
   .standings-competition-filter select,
+  .upcoming-competition-filter select,
   .head-to-head-competition-filter select {
     height: 40px;
     padding: 0 10px;
@@ -614,6 +809,12 @@ footer a:hover {
     margin-top: 2px;
   }
 
+  #head-to-head .outcome-breakdown {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin-top: 0;
+  }
+
   #head-to-head .metric {
     padding-top: 8px;
   }
@@ -630,7 +831,7 @@ footer a:hover {
 
   #head-to-head .results-area {
     grid-column: 1 / -1;
-    grid-row: 4;
+    grid-row: 6;
     margin-top: 0;
     padding-top: 14px;
   }
@@ -711,6 +912,33 @@ footer a:hover {
 
   #current-table td:nth-child(2) {
     overflow-wrap: break-word;
+  }
+
+  .club-line {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-marker {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+
+  #upcoming .fixtures-area {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 2px;
+    padding-top: 0;
+  }
+
+  .fixture-card {
+    padding: 12px;
+  }
+
+  .fixture-team {
+    font-size: 14px;
   }
 
   .project-link {
@@ -977,19 +1205,25 @@ tbody tr.position-relegation:hover td {
 
   #head-to-head .summary-line {
     grid-column: 1 / -1;
-    grid-row: 4;
+    grid-row: 5;
     margin: 0;
     font-size: 13px;
   }
 
   #head-to-head .results-area {
-    grid-row: 5;
+    grid-row: 6;
   }
 
   #head-to-head .swipe-hint {
     display: block;
     grid-column: 1 / -1;
-    grid-row: 6;
+    grid-row: 7;
+  }
+
+  #upcoming .swipe-hint {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 
   .panel-status,

@@ -4,9 +4,11 @@ from datetime import datetime, timezone
 import pytest
 
 from finalwhistle.exporters.json_exporter import (
+    export_match_insights,
     export_standings,
     export_update_metadata,
 )
+from finalwhistle.models.match import UpcomingMatch
 from finalwhistle.models.standing import StandingRow
 
 
@@ -78,3 +80,32 @@ def test_export_update_metadata_rejects_timestamp_without_timezone(tmp_path):
         export_update_metadata(datetime(2026, 9, 13, 13, 5), output_path)
 
     assert not output_path.exists()
+
+
+def test_export_match_insights_writes_compact_json(tmp_path):
+    output_path = tmp_path / "PL.json"
+    upcoming = [
+        UpcomingMatch(
+            match_id=2,
+            utc_date="2026-09-27T15:30:00Z",
+            status="TIMED",
+            matchday=6,
+            home_team_id=61,
+            home_team_name="Chelsea FC",
+            away_team_id=57,
+            away_team_name="Arsenal FC",
+        )
+    ]
+
+    export_match_insights(
+        upcoming,
+        {"57": ["W"], "61": ["L"]},
+        datetime(2026, 9, 25, 9, 0, tzinfo=timezone.utc),
+        output_path,
+    )
+
+    exported_data = json.loads(output_path.read_text(encoding="utf-8"))
+
+    assert exported_data["upcoming"][0]["match_id"] == 2
+    assert exported_data["recent_form"] == {"57": ["W"], "61": ["L"]}
+    assert exported_data["updated_at"] == "2026-09-25T09:00:00Z"

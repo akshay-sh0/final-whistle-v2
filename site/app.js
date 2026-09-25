@@ -3,11 +3,13 @@ const competitions = {
     name: "Premier League",
     historyPath: "data/history/premier-league.json",
     standingsPath: "data/standings/PL.json",
+    matchesPath: "data/matches/PL.json",
   },
   PD: {
     name: "La Liga",
     historyPath: "data/history/la-liga.json",
     standingsPath: "data/standings/PD.json",
+    matchesPath: "data/matches/PD.json",
   },
 };
 
@@ -16,6 +18,7 @@ const standingsMetadataPath = "data/standings/metadata.json";
 const state = {
   history: {},
   standings: {},
+  matchInsights: {},
   standingsMetadata: null,
 };
 
@@ -34,7 +37,13 @@ const monthNames = [
   "December",
 ];
 
-const viewOrder = ["on-this-day", "current-table", "head-to-head", "clubs"];
+const viewOrder = [
+  "on-this-day",
+  "current-table",
+  "upcoming",
+  "head-to-head",
+  "clubs",
+];
 
 const elements = {
   historyCompetition: document.querySelector("#history-competition"),
@@ -45,16 +54,21 @@ const elements = {
   standingsBody: document.querySelector("#standings-body"),
   standingsLastUpdated: document.querySelector("#standings-last-updated"),
 
+  upcomingCompetition: document.querySelector("#upcoming-competition"),
+  upcomingResults: document.querySelector("#upcoming-results"),
+
   headToHeadCompetition: document.querySelector("#head-to-head-competition"),
   firstClub: document.querySelector("#first-club"),
   secondClub: document.querySelector("#second-club"),
   headToHeadSummary: document.querySelector("#head-to-head-summary"),
+  headToHeadOutcomes: document.querySelector("#head-to-head-outcomes"),
   headToHeadRivalry: document.querySelector("#head-to-head-rivalry"),
   headToHeadResults: document.querySelector("#head-to-head-results"),
 
   clubCompetition: document.querySelector("#club-competition"),
   clubSelect: document.querySelector("#club-select"),
   clubSummary: document.querySelector("#club-summary"),
+  clubOutcomes: document.querySelector("#club-outcomes"),
   clubRecords: document.querySelector("#club-records"),
 };
 
@@ -146,6 +160,22 @@ async function loadStandings(code) {
   state.standings[code] = await response.json();
 
   return state.standings[code];
+}
+
+async function loadMatchInsights(code) {
+  if (state.matchInsights[code]) {
+    return state.matchInsights[code];
+  }
+
+  const response = await fetch(competitions[code].matchesPath);
+
+  if (!response.ok) {
+    throw new Error(`Could not load ${competitions[code].name} match data.`);
+  }
+
+  state.matchInsights[code] = await response.json();
+
+  return state.matchInsights[code];
 }
 
 async function loadStandingsMetadata() {
@@ -344,6 +374,59 @@ function createMetric(className, value, label) {
   return metric;
 }
 
+function createOutcomeBreakdown(items) {
+  const wrapper = createElement("div", "outcome-wrapper");
+  const bar = createElement("div", "outcome-bar");
+  const legend = createElement("div", "outcome-legend");
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+
+  if (total === 0) {
+    return wrapper;
+  }
+
+  items.forEach((item) => {
+    const percentage = (item.value / total) * 100;
+    const segment = createElement("span", `outcome-segment ${item.className}`);
+    segment.style.width = `${percentage}%`;
+    segment.title = `${item.label}: ${item.value}`;
+
+    const legendItem = createElement("span", "outcome-legend-item");
+    const dot = createElement("i", `outcome-dot ${item.className}`);
+    legendItem.append(dot, document.createTextNode(`${item.label} ${item.value}`));
+
+    bar.append(segment);
+    legend.append(legendItem);
+  });
+
+  wrapper.append(bar, legend);
+  return wrapper;
+}
+
+function createFormStrip(results, label = "Recent form, newest result first") {
+  const strip = createElement("span", "form-strip");
+  strip.setAttribute("aria-label", label);
+
+  if (!results || results.length === 0) {
+    strip.append(createElement("span", "form-empty", "No recent form"));
+    return strip;
+  }
+
+  results.forEach((result) => {
+    const marker = createElement(
+      "span",
+      `form-marker form-${result.toLowerCase()}`,
+      result,
+    );
+    marker.setAttribute(
+      "title",
+      result === "W" ? "Win" : result === "D" ? "Draw" : "Loss",
+    );
+    strip.append(marker);
+  });
+
+  return strip;
+}
+
 function renderHeadToHead() {
   const code = elements.headToHeadCompetition.value;
   const firstClub = elements.firstClub.value;
@@ -390,9 +473,24 @@ function renderHeadToHead() {
     createMetric("metric-goals", `${firstGoals}-${secondGoals}`, "Goals"),
   );
 
-  elements.headToHeadRivalry.textContent = matches.length
-    ? `${firstClub} lead the rivalry ${firstWins}–${secondWins}. ${draws} ${draws === 1 ? "match" : "matches"} ended level.`
-    : "No rivalry record is available for these clubs.";
+  elements.headToHeadOutcomes.replaceChildren(
+    createOutcomeBreakdown([
+      { label: firstClub, value: firstWins, className: "outcome-win" },
+      { label: "Draws", value: draws, className: "outcome-draw" },
+      { label: secondClub, value: secondWins, className: "outcome-loss" },
+    ]),
+  );
+
+  if (matches.length === 0) {
+    elements.headToHeadRivalry.textContent =
+      "No rivalry record is available for these clubs.";
+  } else if (firstWins > secondWins) {
+    elements.headToHeadRivalry.textContent = `${firstClub} lead the rivalry ${firstWins}–${secondWins}, with ${draws} ${draws === 1 ? "draw" : "draws"}.`;
+  } else if (secondWins > firstWins) {
+    elements.headToHeadRivalry.textContent = `${secondClub} lead the rivalry ${secondWins}–${firstWins}, with ${draws} ${draws === 1 ? "draw" : "draws"}.`;
+  } else {
+    elements.headToHeadRivalry.textContent = `The rivalry is level at ${firstWins}–${secondWins}, with ${draws} ${draws === 1 ? "draw" : "draws"}.`;
+  }
 
   elements.headToHeadResults.replaceChildren();
 
@@ -491,9 +589,29 @@ function renderClub() {
 
   elements.clubSummary.replaceChildren(
     createMetric("metric-goals", String(matches.length), "Matches"),
-    createMetric("metric-win", String(wins), "Wins"),
-    createMetric("metric-draw", String(draws), "Draws"),
-    createMetric("metric-loss", String(losses), "Losses"),
+    createMetric(
+      "metric-win",
+      matches.length ? `${Math.round((wins / matches.length) * 100)}%` : "0%",
+      "Win rate",
+    ),
+    createMetric(
+      "metric-draw",
+      matches.length ? (goalsFor / matches.length).toFixed(2) : "0.00",
+      "Goals per match",
+    ),
+    createMetric(
+      "metric-loss",
+      String(goalsFor - goalsAgainst),
+      "Goal difference",
+    ),
+  );
+
+  elements.clubOutcomes.replaceChildren(
+    createOutcomeBreakdown([
+      { label: "Wins", value: wins, className: "outcome-win" },
+      { label: "Draws", value: draws, className: "outcome-draw" },
+      { label: "Losses", value: losses, className: "outcome-loss" },
+    ]),
   );
 
   const biggestWin = matches
@@ -566,7 +684,109 @@ function renderClub() {
     `${goalsFor} scored and ${goalsAgainst} conceded.`,
   );
 
-  elements.clubRecords.append(goalLine);
+  const recentResults = matches.slice(0, 5).map((match) => {
+    const score = clubScoreForMatch(match, club);
+
+    if (score.goalsFor > score.goalsAgainst) {
+      return "W";
+    }
+
+    if (score.goalsFor < score.goalsAgainst) {
+      return "L";
+    }
+
+    return "D";
+  });
+
+  const formLine = createElement("div", "club-form-line");
+  formLine.append(
+    createElement("strong", "", "Recent form"),
+    createFormStrip(recentResults),
+  );
+
+  elements.clubRecords.append(goalLine, formLine);
+}
+
+function formatFixtureDay(timestamp) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(timestamp));
+}
+
+function formatFixtureTime(match) {
+  if (match.status === "POSTPONED") {
+    return "Postponed";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(match.utc_date));
+}
+
+function createFixtureCard(match) {
+  const card = createElement("article", "fixture-card");
+  const teams = createElement("div", "fixture-teams");
+  teams.append(
+    createElement("span", "fixture-team", match.home_team_name),
+    createElement("span", "fixture-team", match.away_team_name),
+  );
+
+  const details = createElement("div", "fixture-details");
+  details.append(
+    createElement("strong", "fixture-time", formatFixtureTime(match)),
+    createElement(
+      "span",
+      "fixture-matchday",
+      match.matchday ? `Matchday ${match.matchday}` : "League fixture",
+    ),
+  );
+
+  card.append(teams, details);
+  return card;
+}
+
+async function renderUpcoming() {
+  const code = elements.upcomingCompetition.value;
+  elements.upcomingResults.textContent = "Loading upcoming matches...";
+
+  try {
+    const insights = await loadMatchInsights(code);
+    const fixtures = insights.upcoming || [];
+    elements.upcomingResults.replaceChildren();
+
+    if (fixtures.length === 0) {
+      elements.upcomingResults.append(
+        createElement(
+          "p",
+          "empty-state",
+          `No upcoming ${competitions[code].name} fixtures are currently available.`,
+        ),
+      );
+      return;
+    }
+
+    let currentDay = "";
+
+    fixtures.forEach((match) => {
+      const day = formatFixtureDay(match.utc_date);
+
+      if (day !== currentDay) {
+        currentDay = day;
+        elements.upcomingResults.append(
+          createElement("h2", "fixture-day", day),
+        );
+      }
+
+      elements.upcomingResults.append(createFixtureCard(match));
+    });
+  } catch (error) {
+    elements.upcomingResults.replaceChildren(
+      createElement("p", "error-state", error.message),
+    );
+  }
 }
 
 async function renderStandings() {
@@ -577,7 +797,10 @@ async function renderStandings() {
   );
 
   try {
-    const rows = await loadStandings(code);
+    const [rows, insights] = await Promise.all([
+      loadStandings(code),
+      loadMatchInsights(code),
+    ]);
 
     elements.standingsBody.replaceChildren();
 
@@ -595,7 +818,10 @@ async function renderStandings() {
 
       const positionCell = createElement("td", "position-cell", String(row.position));
       const clubCell = createElement("td", "club-cell");
+      const clubLine = createElement("span", "club-line");
       const clubName = createElement("span", "club-name", row.team_name);
+      const form = createFormStrip(insights.recent_form?.[String(row.team_id)]);
+      clubLine.append(clubName, form);
       const details = createElement(
         "span",
         "standing-details",
@@ -609,7 +835,7 @@ async function renderStandings() {
         detailsButton.textContent = expanded ? "Hide record" : "Show record";
         detailsButton.setAttribute("aria-expanded", String(expanded));
       });
-      clubCell.append(clubName, details, detailsButton);
+      clubCell.append(clubLine, details, detailsButton);
 
       [
         positionCell,
@@ -755,6 +981,7 @@ function addEventListeners() {
   });
 
   elements.standingsCompetition.addEventListener("change", renderStandings);
+  elements.upcomingCompetition.addEventListener("change", renderUpcoming);
 
   elements.headToHeadCompetition.addEventListener("change", () => {
     updateHeadToHeadClubs();
@@ -809,6 +1036,7 @@ async function initialise() {
   renderHeadToHead();
   renderClub();
   renderStandings();
+  renderUpcoming();
   renderStandingsStatus();
 
   addEventListeners();
