@@ -76,6 +76,7 @@ const elements = {
   headToHeadCompetition: document.querySelector("#head-to-head-competition"),
   firstClub: document.querySelector("#first-club"),
   secondClub: document.querySelector("#second-club"),
+  headToHeadDataRange: document.querySelector("#head-to-head-data-range"),
   headToHeadSummary: document.querySelector("#head-to-head-summary"),
   headToHeadOutcomes: document.querySelector("#head-to-head-outcomes"),
   headToHeadRivalry: document.querySelector("#head-to-head-rivalry"),
@@ -482,6 +483,9 @@ function renderHeadToHead() {
   const firstClub = elements.firstClub.value;
   const secondClub = elements.secondClub.value;
   const history = state.history[code];
+
+  elements.headToHeadDataRange.textContent =
+    `Archive coverage: ${historyDateRange(history)}`;
 
   const matches = history.matches
     .filter((match) => {
