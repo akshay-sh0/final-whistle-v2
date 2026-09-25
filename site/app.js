@@ -113,6 +113,16 @@ function formatDate(dateString) {
   }).format(date);
 }
 
+function formatShortDate(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
 function formatDayAndMonth(month, day) {
   return `${monthNames[month - 1]} ${day}`;
 }
@@ -120,7 +130,7 @@ function formatDayAndMonth(month, day) {
 function historyDateRange(history) {
   const dates = history.matches.map((match) => match.date).sort();
 
-  return `${formatDate(dates[0])} to ${formatDate(dates[dates.length - 1])}`;
+  return `${formatShortDate(dates[0])} – ${formatShortDate(dates[dates.length - 1])}`;
 }
 
 function normaliseCurrentTeamName(name) {
@@ -601,8 +611,8 @@ async function renderClub() {
   const history = state.history[code];
 
   elements.clubDataRange.textContent =
-    `Historical records below cover ${historyDateRange(history)}. ` +
-    "Current form uses the latest live league results.";
+    `Archive coverage: ${historyDateRange(history)} · ` +
+    "Current form: live league results";
 
   const matches = history.matches
     .filter((match) => match.home === club || match.away === club)

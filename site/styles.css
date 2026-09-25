@@ -385,14 +385,18 @@ select:focus {
 }
 
 .data-range {
+  display: flex;
+  justify-content: flex-start;
   width: fit-content;
-  margin: 12px 0 0;
-  border-radius: 999px;
+  max-width: 100%;
+  margin: 18px 0 0;
+  border-radius: 10px;
   background: #edf4ed;
   padding: 8px 12px;
   color: #587064;
   font-size: 12px;
   font-weight: 650;
+  text-align: left;
 }
 
 .club-line {
@@ -932,7 +936,7 @@ footer a:hover {
   }
 
   .data-range {
-    margin-top: 8px;
+    margin-top: 14px;
     border-radius: 8px;
     font-size: 11px;
     line-height: 1.4;
