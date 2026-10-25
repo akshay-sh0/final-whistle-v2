@@ -12,14 +12,6 @@ trigger:
 
 pr: none
 
-schedules:
-  - cron: "0 */4 * * *"
-    displayName: Refresh standings every four hours
-    branches:
-      include:
-        - main
-    always: true
-
 pool:
   vmImage: ubuntu-latest
 
