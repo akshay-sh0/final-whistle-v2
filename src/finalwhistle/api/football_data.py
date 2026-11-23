@@ -1,7 +1,8 @@
+import json
 import time
 from typing import Any
-
-import requests
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 BASE_URL = "https://api.football-data.org/v4"
 MAX_API_ATTEMPTS = 3
@@ -17,29 +18,31 @@ class FootballDataClient:
 
     def _get_json(self, url: str) -> dict[str, Any]:
         for attempt in range(1, MAX_API_ATTEMPTS + 1):
-            response = requests.get(
-                url,
-                headers=self._headers(),
-                timeout=10,
-            )
+            request = Request(url, headers=self._headers())
 
-            should_retry = (
-                response.status_code in RETRYABLE_STATUS_CODES
-                and attempt < MAX_API_ATTEMPTS
-            )
+            try:
+                with urlopen(request, timeout=10) as response:
+                    return json.load(response)
+            except HTTPError as error:
+                if error.code not in RETRYABLE_STATUS_CODES:
+                    raise
 
-            if should_retry:
+                error_description = f"Football API returned {error.code}"
+            except URLError as error:
+                error_description = f"Football API connection failed: {error.reason}"
+
+            if attempt < MAX_API_ATTEMPTS:
                 delay_seconds = attempt * 2
                 print(
-                    f"Football API returned {response.status_code}. "
-                    f"Retrying in {delay_seconds} seconds "
+                    f"{error_description}. Retrying in {delay_seconds} seconds "
                     f"({attempt}/{MAX_API_ATTEMPTS})."
                 )
                 time.sleep(delay_seconds)
                 continue
 
-            response.raise_for_status()
-            return response.json()
+            raise RuntimeError(
+                f"{error_description} after {MAX_API_ATTEMPTS} attempts."
+            )
 
         raise RuntimeError("Football API retry loop ended unexpectedly.")
 

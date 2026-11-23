@@ -21,10 +21,7 @@ steps:
     inputs:
       versionSpec: "3.12"
 
-  - script: python -m pip install .
-    displayName: Install project dependencies
-
-  - script: python scripts/build_current_standings.py
+  - script: PYTHONPATH=src python scripts/build_current_standings.py
     displayName: Refresh current standings
     env:
       FOOTBALL_DATA_API_TOKEN: $(footballDataApiToken)
