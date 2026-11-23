@@ -1,9 +1,27 @@
+from io import BytesIO
 from unittest.mock import Mock, call
+from urllib.error import HTTPError
 
 import pytest
-import requests
 
 from finalwhistle.api.football_data import FootballDataClient
+
+
+def response_with_json(value: bytes) -> Mock:
+    response = Mock()
+    response.__enter__ = Mock(return_value=BytesIO(value))
+    response.__exit__ = Mock(return_value=False)
+    return response
+
+
+def temporary_server_error() -> HTTPError:
+    return HTTPError(
+        "https://api.football-data.org/v4/competitions/PL/standings",
+        500,
+        "Server Error",
+        None,
+        None,
+    )
 
 
 def test_headers_contains_token():
@@ -13,84 +31,67 @@ def test_headers_contains_token():
 
 
 def test_get_competition_sends_expected_request(monkeypatch):
-    response = Mock(status_code=200)
-    response.json.return_value = {"name": "Premier League"}
-
-    get = Mock(return_value=response)
+    urlopen = Mock(return_value=response_with_json(b'{"name": "Premier League"}'))
     monkeypatch.setattr(
-        "finalwhistle.api.football_data.requests.get",
-        get,
+        "finalwhistle.api.football_data.urlopen",
+        urlopen,
     )
 
     client = FootballDataClient("test-token")
-
     competition = client.get_competition("PL")
 
     assert competition == {"name": "Premier League"}
-    get.assert_called_once_with(
-        "https://api.football-data.org/v4/competitions/PL",
-        headers={"X-Auth-Token": "test-token"},
-        timeout=10,
-    )
-    response.raise_for_status.assert_called_once_with()
+    request = urlopen.call_args.args[0]
+    assert request.full_url == "https://api.football-data.org/v4/competitions/PL"
+    assert request.get_header("X-auth-token") == "test-token"
+    assert urlopen.call_args.kwargs == {"timeout": 10}
 
 
 def test_get_standings_sends_expected_request(monkeypatch):
-    response = Mock(status_code=200)
-    response.json.return_value = {"standings": []}
-
-    get = Mock(return_value=response)
+    urlopen = Mock(return_value=response_with_json(b'{"standings": []}'))
     monkeypatch.setattr(
-        "finalwhistle.api.football_data.requests.get",
-        get,
+        "finalwhistle.api.football_data.urlopen",
+        urlopen,
     )
 
     client = FootballDataClient("test-token")
-
     standings = client.get_standings("PL")
 
     assert standings == {"standings": []}
-    get.assert_called_once_with(
-        "https://api.football-data.org/v4/competitions/PL/standings",
-        headers={"X-Auth-Token": "test-token"},
-        timeout=10,
+    request = urlopen.call_args.args[0]
+    assert request.full_url == (
+        "https://api.football-data.org/v4/competitions/PL/standings"
     )
-    response.raise_for_status.assert_called_once_with()
 
 
 def test_get_matches_sends_expected_request(monkeypatch):
-    response = Mock(status_code=200)
-    response.json.return_value = {"matches": []}
-
-    get = Mock(return_value=response)
+    urlopen = Mock(return_value=response_with_json(b'{"matches": []}'))
     monkeypatch.setattr(
-        "finalwhistle.api.football_data.requests.get",
-        get,
+        "finalwhistle.api.football_data.urlopen",
+        urlopen,
     )
 
     client = FootballDataClient("test-token")
-
     matches = client.get_matches("PD")
 
     assert matches == {"matches": []}
-    get.assert_called_once_with(
-        "https://api.football-data.org/v4/competitions/PD/matches",
-        headers={"X-Auth-Token": "test-token"},
-        timeout=10,
+    request = urlopen.call_args.args[0]
+    assert request.full_url == (
+        "https://api.football-data.org/v4/competitions/PD/matches"
     )
-    response.raise_for_status.assert_called_once_with()
 
 
 def test_get_standings_retries_temporary_server_error(monkeypatch):
-    failed_response = Mock(status_code=500)
-    successful_response = Mock(status_code=200)
-    successful_response.json.return_value = {"standings": []}
-
-    get = Mock(side_effect=[failed_response, successful_response])
+    urlopen = Mock(
+        side_effect=[
+            temporary_server_error(),
+            response_with_json(b'{"standings": []}'),
+        ]
+    )
     sleep = Mock()
     monkeypatch.setattr(
-        "finalwhistle.api.football_data.requests.get",
-        get,
+        "finalwhistle.api.football_data.urlopen",
+        urlopen,
     )
     monkeypatch.setattr(
         "finalwhistle.api.football_data.time.sleep",
@@ -101,23 +102,16 @@ def test_get_standings_retries_temporary_server_error(monkeypatch):
     standings = client.get_standings("PL")
 
     assert standings == {"standings": []}
-    assert get.call_count == 2
+    assert urlopen.call_count == 2
     sleep.assert_called_once_with(2)
-    failed_response.raise_for_status.assert_not_called()
-    successful_response.raise_for_status.assert_called_once_with()
 
 
 def test_get_standings_fails_after_retry_limit(monkeypatch):
-    responses = [Mock(status_code=500) for _ in range(3)]
-    responses[-1].raise_for_status.side_effect = requests.HTTPError(
-        "500 Server Error"
-    )
-
-    get = Mock(side_effect=responses)
+    urlopen = Mock(side_effect=[temporary_server_error() for _ in range(3)])
     sleep = Mock()
     monkeypatch.setattr(
-        "finalwhistle.api.football_data.requests.get",
-        get,
+        "finalwhistle.api.football_data.urlopen",
+        urlopen,
     )
     monkeypatch.setattr(
         "finalwhistle.api.football_data.time.sleep",
@@ -126,11 +120,8 @@ def test_get_standings_fails_after_retry_limit(monkeypatch):
 
     client = FootballDataClient("test-token")
 
-    with pytest.raises(requests.HTTPError, match="500 Server Error"):
+    with pytest.raises(RuntimeError, match="500 after 3 attempts"):
         client.get_standings("PL")
 
-    assert get.call_count == 3
+    assert urlopen.call_count == 3
     assert sleep.call_args_list == [call(2), call(4)]
-    responses[0].raise_for_status.assert_not_called()
-    responses[1].raise_for_status.assert_not_called()
-    responses[2].raise_for_status.assert_called_once_with()
